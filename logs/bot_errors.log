@@ -1,0 +1,16 @@
+2025-02-04 21:12:09,793 [ERROR] graceful_shutdown() takes 0 positional arguments but 2 were given
+2025-02-04 21:12:09,794 [ERROR] ('graceful_shutdown() takes 0 positional arguments but 2 were given',)
+2025-02-04 21:12:12,817 [ERROR] graceful_shutdown() takes 0 positional arguments but 2 were given
+2025-02-04 21:12:12,818 [ERROR] ('graceful_shutdown() takes 0 positional arguments but 2 were given',)
+2025-02-04 21:12:17,700 [ERROR] graceful_shutdown() takes 0 positional arguments but 2 were given
+2025-02-04 21:12:17,701 [ERROR] ('graceful_shutdown() takes 0 positional arguments but 2 were given',)
+2025-02-04 21:12:34,120 [ERROR] graceful_shutdown() takes 0 positional arguments but 2 were given
+2025-02-04 21:12:34,121 [ERROR] ('graceful_shutdown() takes 0 positional arguments but 2 were given',)
+2025-02-04 21:17:01,034 [ERROR] graceful_shutdown() takes 0 positional arguments but 2 were given
+2025-02-04 21:17:01,035 [ERROR] ('graceful_shutdown() takes 0 positional arguments but 2 were given',)
+2025-02-04 21:17:22,339 [ERROR] graceful_shutdown() takes 0 positional arguments but 2 were given
+2025-02-04 21:17:22,339 [ERROR] ('graceful_shutdown() takes 0 positional arguments but 2 were given',)
+2025-02-04 21:20:00,305 [ERROR] graceful_shutdown() takes 0 positional arguments but 2 were given
+2025-02-04 21:20:00,306 [ERROR] ('graceful_shutdown() takes 0 positional arguments but 2 were given',)
+2025-02-04 21:20:59,119 [ERROR] graceful_shutdown() takes 0 positional arguments but 2 were given
+2025-02-04 21:20:59,120 [ERROR] ('graceful_shutdown() takes 0 positional arguments but 2 were given',)
