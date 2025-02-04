@@ -1,0 +1,2 @@
+class ShippingBookingException (Exception):
+    pass
