@@ -10,6 +10,7 @@ def check_process():
         print("Найденные процессы:")
         print(output)
         print(len(output))
+        print(len(output.split("\n")))
         return True
     else:
         print("Процесс main.py не найден.")
