@@ -12,6 +12,9 @@ import sys
 from utils import check_process
 from refresh import refresh_tokens
 from collections import deque
+import functools
+import inspect
+
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -38,15 +41,39 @@ signal.signal(signal.SIGINT, graceful_shutdown)
 signal.signal(signal.SIGTERM, graceful_shutdown)
 
 
+def trusted_user(condition):
+    def decorator(func):
+        @functools.wraps(func)
+        async def wrapper(*args, **kwargs):
+            result = condition(*args, **kwargs)
+            if inspect.isawaitable(result):
+                result = await result
+
+            if result:
+                return await func(*args, **kwargs)
+            else:
+                return None
+        return wrapper
+    return decorator
+
+
+async def check_user(update, context):
+    if update.message.from_user.id in (988468804, 2017350326):
+        return True
+    else:
+        return False
+
+
+@trusted_user(check_user)
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.info(update.message.from_user)
     logger.info(update.message.from_user.id)
-    if update.message.from_user.id in (988468804, 2017350326):
-        await update.message.reply_text(
+    await update.message.reply_text(
             "Привет! Проверка связи, теперь мне могут писать только два человека"
-        )
+    )
 
 
+@trusted_user(check_user)
 async def activate_script(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     start_bot = subprocess.Popen(
         ["sh", "./start_bot.sh"],
@@ -59,6 +86,7 @@ async def activate_script(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     await update.message.reply_text("Скрипт активирован!")
 
 
+@trusted_user(check_user)
 async def stop_script(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     stop_bot = subprocess.Popen(
         ["sh", "./stop_bot.sh"],
@@ -71,6 +99,7 @@ async def stop_script(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     await update.message.reply_text("Скрипт остановлен!")
 
 
+@trusted_user(check_user)
 async def status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     process_running = check_process()
     if process_running:
@@ -79,6 +108,7 @@ async def status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await update.message.reply_text("Бот в данный момент не работает 😴")
 
 
+@trusted_user(check_user)
 async def update_tokens(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.info("Обновляю токены")
     if check_process():
@@ -100,6 +130,7 @@ async def update_tokens(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                                        text="Что-то пошло не так при обновлении токенов")
 
 
+@trusted_user(check_user)
 async def token_refresh(context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.info("Обновляю токены")
     if check_process():
@@ -120,12 +151,14 @@ async def token_refresh(context: ContextTypes.DEFAULT_TYPE) -> None:
         await context.bot.send_message(chat_id=988468804, text="Что-то пошло не так при обновлении токенов")
 
 
+@trusted_user(check_user)
 async def show_logs(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     with open("logs/bot_info.log", 'r', encoding='utf-8') as f:
         last_lines = deque(f, maxlen=10)
         await update.message.reply_text(f"Последние 10 записей из логов:\n{''.join(last_lines)}")
 
 
+@trusted_user(check_user)
 async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text = """
     /activate_script - запустить бота и начать отслеживание грузов\n\n

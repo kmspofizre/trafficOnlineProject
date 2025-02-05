@@ -3,9 +3,12 @@ import time
 import csv
 from loggersetup import setup_logger
 from headers import headers_post, headers_get, spb_to_msc, msc_to_spb, get_shipping_query, post_application_query
+from utils import check_process
 logger = setup_logger()
 
 session = requests.Session()
+
+# TODO: добавить проверку, есть ли инстанс
 
 
 def get_ids():
@@ -81,4 +84,8 @@ def trafficbot():
 
 
 if __name__ == '__main__':
-    trafficbot()
+    if not check_process():
+        trafficbot()
+    else:
+        logger.info("Уже есть работающий инстанс, нельзя запустить еще один")
+        print("Уже есть работающий инстанс, нельзя запустить еще один")
