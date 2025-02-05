@@ -84,8 +84,11 @@ def trafficbot():
 
 
 if __name__ == '__main__':
-    if not check_process():
+    process_exists, number_of_processes = check_process()
+    if not process_exists:
         trafficbot()
+        logger.info(f"Количество процессов: {number_of_processes}")
     else:
+        logger.info(f"Количество процессов: {number_of_processes}")
         logger.info("Уже есть работающий инстанс, нельзя запустить еще один")
         print("Уже есть работающий инстанс, нельзя запустить еще один")
