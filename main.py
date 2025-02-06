@@ -8,8 +8,6 @@ logger = setup_logger()
 
 session = requests.Session()
 
-# TODO: добавить проверку, есть ли инстанс
-
 
 def get_ids():
     ids = []

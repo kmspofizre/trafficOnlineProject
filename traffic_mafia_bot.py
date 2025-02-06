@@ -101,7 +101,7 @@ async def stop_script(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
 @trusted_user(check_user)
 async def status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    process_running = check_process()
+    process_running, number_pf_processes = check_process()
     if process_running:
         await update.message.reply_text("Бот на охоте за грузами 😈")
     else:
