@@ -42,10 +42,10 @@ headers_get = {
 spb_to_msc = {
     "max_tonnage": 10,
     "from_location_id": "04f59a69-3bc9-11da-8059-00112fdd6583",
-    "from_radius": 200,
+    "from_radius": 300,
     "type": "shipping_request",
     "direction_location_id": "652db5a5-55b5-11da-81e1-00112fdd6583",
-    "direction_radius": 200
+    "direction_radius": 300
 }
 
 
@@ -53,10 +53,10 @@ spb_to_msc = {
 msc_to_spb = {
     "max_tonnage": 10,
     "from_location_id": "652db5a5-55b5-11da-81e1-00112fdd6583",
-    "from_radius": 200,
+    "from_radius": 300,
     "type": "shipping_request",
     "direction_location_id": "04f59a69-3bc9-11da-8059-00112fdd6583",
-    "direction_radius": 200
+    "direction_radius": 300
 }
 
 login_password = {
