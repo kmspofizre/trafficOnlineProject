@@ -2,7 +2,7 @@ import requests
 import time
 import csv
 from loggersetup import setup_logger
-from headers import headers_post, headers_get, spb_to_msc, msc_to_spb, get_shipping_query, post_application_query
+from constants import headers_post, headers_get, spb_to_msc, msc_to_spb, get_shipping_query, post_application_query
 from utils import check_process
 logger = setup_logger()
 

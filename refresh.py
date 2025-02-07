@@ -1,6 +1,6 @@
 import requests
 import dotenv
-from headers import headers_auth, login_password
+from constants import headers_auth, login_password
 
 
 def refresh_tokens():
