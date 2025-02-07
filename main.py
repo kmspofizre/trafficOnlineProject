@@ -40,7 +40,18 @@ def trafficbot():
             msc_spb_request = session.get(get_shipping_query, headers=headers_get, params=msc_to_spb)
 
             spb_msc_data = spb_msc_request.json()
+            if spb_msc_request.status_code == 200:
+                spb_msc_data = spb_msc_request.json()
+            else:
+                logger.error(f"spb_msc_request вернул статус {spb_msc_request.status_code}")
+                logger.error(f"Ответ: {spb_msc_request.text}")
+
             msc_spb_data = msc_spb_request.json()
+            if msc_spb_request.status_code == 200:
+                msc_spb_data = msc_spb_request.json()
+            else:
+                logger.error(f"spb_msc_request вернул статус {msc_spb_request.status_code}")
+                logger.error(f"Ответ: {msc_spb_request.text}")
 
             spb_msc_items = spb_msc_data.get("items", [])
             msc_spb_items = msc_spb_data.get("items", [])
