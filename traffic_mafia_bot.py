@@ -1,5 +1,5 @@
 import logging
-from headers import tg_token
+from constants import tg_token
 from telegram import Update
 from telegram.ext import (
     Application,
@@ -14,6 +14,7 @@ from refresh import refresh_tokens
 from collections import deque
 import functools
 import inspect
+import time
 
 
 logging.basicConfig(
@@ -111,9 +112,11 @@ async def status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 @trusted_user(check_user)
 async def update_tokens(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.info("Обновляю токены")
-    if check_process():
+    process_running = check_process()[0]
+    if process_running:
         subprocess.run(["sh", "./stop_bot.sh"], capture_output=True, text=True)
         refresh_status = refresh_tokens()
+        time.sleep(5)
         start_bot = subprocess.Popen(
             ["sh", "./start_bot.sh"],
             stdout=subprocess.PIPE,
@@ -133,9 +136,11 @@ async def update_tokens(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 @trusted_user(check_user)
 async def token_refresh(context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.info("Обновляю токены")
-    if check_process():
+    process_running = check_process()[0]
+    if process_running:
         subprocess.run(["sh", "./stop_bot.sh"], capture_output=True, text=True)
         refresh_status = refresh_tokens()
+        time.sleep(5)
         start_bot = subprocess.Popen(
             ["sh", "./start_bot.sh"],
             stdout=subprocess.PIPE,
@@ -179,7 +184,7 @@ def main() -> None:
     application.add_handler(CommandHandler("update_tokens", update_tokens))
     application.add_handler(CommandHandler("show_logs", show_logs))
     application.add_handler(CommandHandler("help", help))
-    interval = 20 * 3600
+    interval = 12 * 3600
     application.job_queue.run_repeating(token_refresh, interval=interval, first=0)
     application.run_polling()
     graceful_shutdown("Ctrl+C", "mainFrame")
