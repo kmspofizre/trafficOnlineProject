@@ -4,9 +4,13 @@ import csv
 from loggersetup import setup_logger
 from constants import headers_post, headers_get, spb_to_msc, msc_to_spb, get_shipping_query, post_application_query
 from utils import check_process
+import json
 logger = setup_logger()
 
 session = requests.Session()
+
+
+# TODO: разбить на классы обработку запросов traffic - singletone, post и get запросы в разные классы
 
 
 def get_ids():
@@ -38,21 +42,17 @@ def trafficbot():
         try:
             spb_msc_request = session.get(get_shipping_query, headers=headers_get, params=spb_to_msc)
             msc_spb_request = session.get(get_shipping_query, headers=headers_get, params=msc_to_spb)
-
-            spb_msc_data = spb_msc_request.json()
-            if spb_msc_request.status_code == 200:
+            try:
                 spb_msc_data = spb_msc_request.json()
-            else:
-                logger.error(f"spb_msc_request вернул статус {spb_msc_request.status_code}")
-                logger.error(f"Ответ: {spb_msc_request.text}")
-
-            msc_spb_data = msc_spb_request.json()
-            if msc_spb_request.status_code == 200:
                 msc_spb_data = msc_spb_request.json()
-            else:
-                logger.error(f"spb_msc_request вернул статус {msc_spb_request.status_code}")
-                logger.error(f"Ответ: {msc_spb_request.text}")
-
+            except json.decoder.JSONDecodeError:
+                if spb_msc_request.status_code != 200:
+                    logger.error(f"spb_msc_request вернул статус {spb_msc_request.status_code}")
+                    logger.error(f"Ответ: {spb_msc_request.text}")
+                if msc_spb_request.status_code != 200:
+                    logger.error(f"spb_msc_request вернул статус {msc_spb_request.status_code}")
+                    logger.error(f"Ответ: {msc_spb_request.text}")
+                continue
             spb_msc_items = spb_msc_data.get("items", [])
             msc_spb_items = msc_spb_data.get("items", [])
             new_ids = [item["id"] for item in spb_msc_items if "id" in item]
