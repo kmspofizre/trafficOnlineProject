@@ -69,7 +69,7 @@ def trafficbot():
                         i = 0
             time.sleep(1)
         except Exception as e:
-            logger.error(e)
+            logger.error(e, exc_info=True)
             logger.error(e.args)
             time.sleep(2)
         if j == 70:
@@ -90,4 +90,3 @@ if __name__ == '__main__':
     else:
         logger.info(f"Количество процессов: {number_of_processes}")
         logger.info("Уже есть работающий инстанс, нельзя запустить еще один")
-        print("Уже есть работающий инстанс, нельзя запустить еще один")
