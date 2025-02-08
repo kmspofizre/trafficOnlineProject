@@ -3,6 +3,7 @@ from typing import Dict, List
 from requests import Session, Response
 from constants import get_shipping_query, headers_get
 from logging import Logger
+import time
 
 
 class ShippingGetter(BaseModel):
@@ -21,8 +22,13 @@ class ShippingGetter(BaseModel):
 
     def get_shipping_responses(self, directions: List) -> List[Response]:
         direction_responses = []
+        i = 0
         for direction in directions:
             direction_responses.append(self.session.get(get_shipping_query, headers=headers_get, params=direction))
+            i += 1
+            if i % 3 == 0:
+                time.sleep(1)
+                i = 0
         return direction_responses
 
     @staticmethod
