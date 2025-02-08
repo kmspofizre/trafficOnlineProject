@@ -133,7 +133,6 @@ async def update_tokens(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
                                        text="Что-то пошло не так при обновлении токенов")
 
 
-@trusted_user(check_user)
 async def token_refresh(context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.info("Обновляю токены")
     process_running = check_process()[0]
