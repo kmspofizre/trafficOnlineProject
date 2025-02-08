@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Tuple
 from ShippingBooker import ShippingBooker
 from ShippingRequestsHandler import ShippingGetter
 from requests import Session
@@ -12,6 +12,9 @@ import time
 from utils import check_process
 
 
+# TODO: update_directions, refresh_headers
+
+
 class TrafficBot(BaseModel):
     shipping_getter: ShippingGetter
     shipping_booker: ShippingBooker
@@ -21,22 +24,33 @@ class TrafficBot(BaseModel):
     logger: Logger
     directions: List
     thread_lock: threading.Lock
+    directions_file_path: str
 
-    def __init__(self, api_key: str, data_filename: str):
+    def __init__(self, api_key: str, data_filename: str, directions_file_path: str):
         self.session = Session()
         self.shipping_getter = ShippingGetter(self.session, api_key)
         self.shipping_booker = ShippingBooker(self.session, api_key)
         self.data_filename = data_filename
         self.shipping_ids = get_ids(data_filename)
         self.logger = setup_logger()
-        with open('jsons/directions.json', 'r', encoding='utf-8') as file:
+        self.directions_file_path = directions_file_path
+        with open(self.directions_file_path, 'r', encoding='utf-8') as file:
             self.directions = json.load(file)
         self.thread_lock = threading.Lock()
         super().__init__()
 
-    def refresh_api_key(self, api_key: str):
-        self.shipping_getter.update_headers(api_key)
-        self.shipping_booker.update_headers(api_key)
+    def refresh_api_key(self, api_key: str) -> Tuple[bool, bool]:
+        try:
+            self.shipping_getter.update_headers(api_key)
+            getter_updated = True
+        except KeyError:
+            getter_updated = False
+        try:
+            self.shipping_booker.update_headers(api_key)
+            booker_updated = True
+        except KeyError:
+            booker_updated = False
+        return getter_updated, booker_updated
 
     def polling(self):
         instance_allowed = self.check_instances()
@@ -48,7 +62,6 @@ class TrafficBot(BaseModel):
         j = 0
         while True:
             try:
-                # здесь нужно перебирать направления, два запроса плохо для масшатбируемости
                 with self.thread_lock:
                     direction_responses = self.shipping_getter.get_shipping_responses(self.directions)
                 filtered_direction_responses = self.shipping_getter.filter_shipping_responses_by_status_code(
@@ -58,7 +71,8 @@ class TrafficBot(BaseModel):
                 i = len(direction_responses) % 3
                 for shipping_id in shipping_ids:
                     i += 1
-                    shipping_booking_response = self.shipping_booker.book_shipping(shipping_id)
+                    with self.thread_lock:
+                        shipping_booking_response = self.shipping_booker.book_shipping(shipping_id)
                     shipping_booked = self.shipping_booker.process_booking_response(shipping_booking_response,
                                                                                     self.logger)
                     if shipping_booked:
@@ -87,8 +101,6 @@ class TrafficBot(BaseModel):
             self.logger.info(f"Количество процессов: {number_of_processes}")
             return False
 
-    def update_directions(self):
-        pass
-
-    def refresh_directions(self, api_key: str):
-        pass
+    def refresh_directions(self):
+        with open(self.directions_file_path, 'r', encoding='utf-8') as file:
+            self.directions = json.load(file)

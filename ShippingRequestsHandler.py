@@ -51,9 +51,5 @@ class ShippingGetter(BaseModel):
             new_ids.extend([item["id"] for item in shipping_response_items if "id" in item])
         return new_ids
 
-    def update_headers(self, api_key: str) -> bool:
-        try:
-            self.get_header['Authorization'] = f"Bearer {api_key}"
-            return True
-        except KeyError as e:
-            return False
+    def update_headers(self, api_key: str):
+        self.get_header['Authorization'] = f"Bearer {api_key}"

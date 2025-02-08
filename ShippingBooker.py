@@ -31,9 +31,6 @@ class ShippingBooker(BaseModel):
             logger.error(f"{booking_response.json()}")
             return False
 
-    def update_headers(self, api_key: str) -> bool:
-        try:
-            self.post_header['Authorization'] = f"Bearer {api_key}"
-            return True
-        except KeyError as e:
-            return False
+    def update_headers(self, api_key: str):
+        self.post_header['Authorization'] = f"Bearer {api_key}"
+
