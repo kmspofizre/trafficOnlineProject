@@ -1,28 +1,107 @@
 from pydantic import BaseModel
-from typing import Dict
+from typing import List, Tuple
 from ShippingBooker import ShippingBooker
-from ShippingGetter import ShippingGetter
+from ShippingRequestsHandler import ShippingGetter
 from requests import Session
+from utils import get_ids, save_ids
+from logging import Logger
+from loggersetup import setup_logger
+import json
+import threading
+import time
+from utils import check_process
+from exceptions import InstanceIsRunningException
+
+
+# TODO: update_directions, refresh_headers
 
 
 class TrafficBot(BaseModel):
-
-    post_header: Dict[str, str]
     shipping_getter: ShippingGetter
     shipping_booker: ShippingBooker
     session: Session
+    shipping_ids: List[str]
+    data_filename: str
+    logger: Logger
+    directions: List
+    thread_lock: threading.Lock
+    directions_file_path: str
 
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str, data_filename: str, directions_file_path: str):
         self.session = Session()
         self.shipping_getter = ShippingGetter(self.session, api_key)
         self.shipping_booker = ShippingBooker(self.session, api_key)
+        self.data_filename = data_filename
+        self.shipping_ids = get_ids(data_filename)
+        self.logger = setup_logger()
+        self.directions_file_path = directions_file_path
+        with open(self.directions_file_path, 'r', encoding='utf-8') as file:
+            self.directions = json.load(file)
+        self.thread_lock = threading.Lock()
         super().__init__()
 
-    def refresh_api_key(self, api_key: str):
-        self.get_header['Authorization'] = f"Bearer {api_key}"
-        self.post_header['Authorization'] = f"Bearer {api_key}"
+    def refresh_api_key(self, api_key: str) -> Tuple[bool, bool]:
+        try:
+            self.shipping_getter.update_headers(api_key)
+            getter_updated = True
+        except KeyError:
+            getter_updated = False
+        try:
+            self.shipping_booker.update_headers(api_key)
+            booker_updated = True
+        except KeyError:
+            booker_updated = False
+        return getter_updated, booker_updated
 
-    def poll(self):
-        pass
+    def polling(self):
+        instance_allowed = self.check_instances()
+        if not instance_allowed:
+            self.logger.error("Уже есть работающий инстанс, нельзя запустить еще один")
+            raise InstanceIsRunningException("Уже есть работающий инстанс, нельзя запустить еще один")
+        self.logger.info("Запустились")
+        self.logger.info(f"Previous ids: {self.shipping_ids}")
+        j = 0
+        while True:
+            try:
+                with self.thread_lock:
+                    direction_responses = self.shipping_getter.get_shipping_responses(self.directions)
+                filtered_direction_responses = self.shipping_getter.filter_shipping_responses_by_status_code(
+                    direction_responses, self.logger)
+                shipping_ids = self.shipping_getter.process_shipping_response(filtered_direction_responses)
+                j += 1
+                i = len(direction_responses) % 3
+                for shipping_id in shipping_ids:
+                    i += 1
+                    with self.thread_lock:
+                        shipping_booking_response = self.shipping_booker.book_shipping(shipping_id)
+                    shipping_booked = self.shipping_booker.process_booking_response(shipping_booking_response,
+                                                                                    self.logger)
+                    if shipping_booked:
+                        self.shipping_ids.append(shipping_id)
+                    if i == 3:
+                        time.sleep(1)
+                        i = 0
+            except Exception as e:
+                self.logger.error(e, exc_info=True)
+                self.logger.error(e.args)
+                time.sleep(2)
+            if j == 70:
+                try:
+                    j = 0
+                    save_ids(self.shipping_ids, self.data_filename)
+                    self.logger.info("Ids saved successfully")
+                except Exception as e:
+                    self.logger.error(f"Something went wrong during id saving: {e}")
 
+    def check_instances(self) -> bool:
+        number_of_processes = check_process()[1]
+        if number_of_processes <= 1:
+            self.logger.info(f"Количество процессов: {number_of_processes}")
+            return True
+        else:
+            self.logger.info(f"Количество процессов: {number_of_processes}")
+            return False
 
+    def refresh_directions(self):
+        with open(self.directions_file_path, 'r', encoding='utf-8') as file:
+            self.directions = json.load(file)

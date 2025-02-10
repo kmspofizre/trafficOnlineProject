@@ -39,3 +39,10 @@ class ShippingGetter(BaseModel):
         new_ids = [item["id"] for item in spb_msc_items if "id" in item]
         new_ids.extend([item["id"] for item in msc_spb_items if "id" in item])
         return new_ids
+
+    def update_headers(self, api_key: str) -> bool:
+        try:
+            self.get_header['Authorization'] = f"Bearer {api_key}"
+            return True
+        except KeyError as e:
+            return False
