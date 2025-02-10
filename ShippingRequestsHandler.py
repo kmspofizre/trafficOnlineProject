@@ -1,34 +1,27 @@
-from pydantic import BaseModel
-from typing import Dict, List
+from typing import List
 from requests import Session, Response
 from constants import get_shipping_query, headers_get
 from logging import Logger
 import time
 
 
-class ShippingGetter(BaseModel):
-
-    shipping_request_data_spb_to_msc: Dict[str, str]
-    shipping_request_data_msc_to_spb: Dict[str, str]
-    session: Session
-    get_header: Dict[str, str]
-
+class ShippingGetter:
     def __init__(self, session: Session, api_key:str):
 
         self.session = session
         self.get_header = headers_get
         headers_get['Authorization'] = f"Bearer {api_key}"
+        self.request_counter = 0
         super().__init__()
 
     def get_shipping_responses(self, directions: List) -> List[Response]:
         direction_responses = []
-        i = 0
         for direction in directions:
             direction_responses.append(self.session.get(get_shipping_query, headers=headers_get, params=direction))
-            i += 1
-            if i % 3 == 0:
+            self.request_counter += 1
+            if self.request_counter % 3 == 0:
                 time.sleep(1)
-                i = 0
+                self.request_counter = 0
         return direction_responses
 
     @staticmethod

@@ -1,32 +1,18 @@
-from pydantic import BaseModel
-from typing import List, Tuple
+from typing import Tuple
 from ShippingBooker import ShippingBooker
 from ShippingRequestsHandler import ShippingGetter
 from requests import Session
 from utils import get_ids, save_ids
-from logging import Logger
 from loggersetup import setup_logger
 import json
 import threading
 import time
+from datetime import datetime, timedelta
 from utils import check_process
 from exceptions import InstanceIsRunningException
 
 
-# TODO: update_directions, refresh_headers
-
-
-class TrafficBot(BaseModel):
-    shipping_getter: ShippingGetter
-    shipping_booker: ShippingBooker
-    session: Session
-    shipping_ids: List[str]
-    data_filename: str
-    logger: Logger
-    directions: List
-    thread_lock: threading.Lock
-    directions_file_path: str
-
+class TrafficBot:
     def __init__(self, api_key: str, data_filename: str, directions_file_path: str):
         self.session = Session()
         self.shipping_getter = ShippingGetter(self.session, api_key)
@@ -35,6 +21,11 @@ class TrafficBot(BaseModel):
         self.shipping_ids = get_ids(data_filename)
         self.logger = setup_logger()
         self.directions_file_path = directions_file_path
+        self.running = False
+        self.thread = None
+        self.last_statuses = []
+        self.current_statuses = []
+        self.last_status_update = datetime.now() + timedelta(hours=3)
         with open(self.directions_file_path, 'r', encoding='utf-8') as file:
             self.directions = json.load(file)
         self.thread_lock = threading.Lock()
@@ -53,6 +44,22 @@ class TrafficBot(BaseModel):
             booker_updated = False
         return getter_updated, booker_updated
 
+    def start(self) -> str:
+        if not self.running:
+            self.running = True
+            self.thread = threading.Thread(target=self.polling, daemon=True)
+            self.thread.start()
+            return "Скрипт запущен!"
+        return "Скрипт уже работает"
+
+    def stop(self) -> str:
+        if self.running:
+            self.running = False
+            if self.thread:
+                self.thread.join()
+            return "TrafficBot остановлен"
+        return "Скрипт не был запущен"
+
     def polling(self):
         instance_allowed = self.check_instances()
         if not instance_allowed:
@@ -61,7 +68,7 @@ class TrafficBot(BaseModel):
         self.logger.info("Запустились")
         self.logger.info(f"Previous ids: {self.shipping_ids}")
         j = 0
-        while True:
+        while self.running:
             try:
                 with self.thread_lock:
                     direction_responses = self.shipping_getter.get_shipping_responses(self.directions)
@@ -78,14 +85,18 @@ class TrafficBot(BaseModel):
                                                                                     self.logger)
                     if shipping_booked:
                         self.shipping_ids.append(shipping_id)
-                    if i == 3:
+                    if i % 3:
                         time.sleep(1)
                         i = 0
             except Exception as e:
                 self.logger.error(e, exc_info=True)
                 self.logger.error(e.args)
                 time.sleep(2)
-            if j == 70:
+            if j % 60 == 0:
+                self.last_statuses = list(map(lambda x: x.status_code, direction_responses))
+                self.last_status_update = datetime.now() + timedelta(hours=3)
+                self.logger.info(f"Последние статусы ответов: {self.last_statuses}")
+            if j == 120:
                 try:
                     j = 0
                     save_ids(self.shipping_ids, self.data_filename)
@@ -105,3 +116,13 @@ class TrafficBot(BaseModel):
     def refresh_directions(self):
         with open(self.directions_file_path, 'r', encoding='utf-8') as file:
             self.directions = json.load(file)
+
+    def is_running(self):
+        return self.running
+
+    def get_last_statuses(self):
+        return self.last_statuses
+
+    def get_last_status_update(self):
+        return self.last_status_update
+

@@ -1,14 +1,9 @@
-from pydantic import BaseModel
-from typing import Dict
 from requests import Session, Response
 from constants import headers_post, post_application_query
 from logging import Logger
 
 
-class ShippingBooker(BaseModel):
-    post_header: Dict[str, str]
-    session: Session
-
+class ShippingBooker:
     def __init__(self, session: Session, api_key: str):
         self.post_header = headers_post
         headers_post['Authorization'] = f"Bearer {api_key}"
