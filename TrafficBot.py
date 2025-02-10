@@ -10,6 +10,7 @@ import json
 import threading
 import time
 from utils import check_process
+from exceptions import InstanceIsRunningException
 
 
 # TODO: update_directions, refresh_headers
@@ -55,8 +56,8 @@ class TrafficBot(BaseModel):
     def polling(self):
         instance_allowed = self.check_instances()
         if not instance_allowed:
-            self.logger.info("Уже есть работающий инстанс, нельзя запустить еще один")
-            return
+            self.logger.error("Уже есть работающий инстанс, нельзя запустить еще один")
+            raise InstanceIsRunningException("Уже есть работающий инстанс, нельзя запустить еще один")
         self.logger.info("Запустились")
         self.logger.info(f"Previous ids: {self.shipping_ids}")
         j = 0
