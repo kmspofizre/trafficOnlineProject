@@ -11,6 +11,7 @@ tg_token = os.getenv("BOT_TOKEN")
 
 get_shipping_query = "https://api.traffic.online/api/v1/request_view"
 post_application_query = "https://api.traffic.online/api/v1/shipping_requests/"
+auth_query = "https://api.traffic.online/api/v1/auth/token"
 
 headers_auth = {
     "Content-Type": "application/json",
