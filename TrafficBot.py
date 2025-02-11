@@ -8,7 +8,7 @@ import json
 import threading
 import time
 from datetime import datetime, timedelta
-from utils import check_process
+from utils import check_process, get_json_data
 from exceptions import InstanceIsRunningException
 
 
@@ -26,8 +26,7 @@ class TrafficBot:
         self.last_statuses = []
         self.current_statuses = []
         self.last_status_update = datetime.now() + timedelta(hours=3)
-        with open(self.directions_file_path, 'r', encoding='utf-8') as file:
-            self.directions = json.load(file)
+        self.directions = get_json_data(directions_file_path)
         self.thread_lock = threading.Lock()
         super().__init__()
 
@@ -45,6 +44,8 @@ class TrafficBot:
         return getter_updated, booker_updated
 
     def start(self) -> str:
+        self.directions = get_json_data(self.directions_file_path)
+        self.shipping_ids = get_ids(self.data_filename)
         if not self.running:
             self.running = True
             self.thread = threading.Thread(target=self.polling, daemon=True)
@@ -53,6 +54,7 @@ class TrafficBot:
         return "Скрипт уже работает"
 
     def stop(self) -> str:
+        save_ids(self.shipping_ids, self.data_filename)
         if self.running:
             self.running = False
             if self.thread:
