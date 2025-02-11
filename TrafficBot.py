@@ -81,16 +81,19 @@ class TrafficBot:
                 i = len(direction_responses) % 3
                 for shipping_id in shipping_ids:
                     self.logger.info(f"Processing: {shipping_id}")
-                    i += 1
-                    with self.thread_lock:
-                        shipping_booking_response = self.shipping_booker.book_shipping(shipping_id)
-                    shipping_booked = self.shipping_booker.process_booking_response(shipping_booking_response,
+                    if shipping_id not in self.shipping_ids:
+                        i += 1
+                        with self.thread_lock:
+                            shipping_booking_response = self.shipping_booker.book_shipping(shipping_id)
+                        shipping_booked = self.shipping_booker.process_booking_response(shipping_booking_response,
                                                                                     self.logger)
-                    if shipping_booked:
-                        self.shipping_ids.append(shipping_id)
-                    if i % 3:
-                        time.sleep(1)
-                        i = 0
+                        if shipping_booked:
+                            self.shipping_ids.append(shipping_id)
+                        if i % 3:
+                            time.sleep(1)
+                            i = 0
+                    else:
+                        self.logger.info(f"This id was processed before ({shipping_id})")
             except Exception as e:
                 self.logger.error(e, exc_info=True)
                 self.logger.error(e.args)
