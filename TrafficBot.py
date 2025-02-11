@@ -80,6 +80,7 @@ class TrafficBot:
                 j += 1
                 i = len(direction_responses) % 3
                 for shipping_id in shipping_ids:
+                    self.logger.info(f"Processing: {shipping_id}")
                     i += 1
                     with self.thread_lock:
                         shipping_booking_response = self.shipping_booker.book_shipping(shipping_id)
