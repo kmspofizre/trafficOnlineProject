@@ -40,3 +40,8 @@ def save_ids(ids, filename):
 def save_json(json_filename, data):
     with open(json_filename, "w", encoding="utf-8") as file:
         json.dump(data, file, ensure_ascii=False, indent=4)
+
+
+def get_json_data(json_filename):
+    with open(json_filename, 'r', encoding='utf-8') as file:
+        return json.load(file)
