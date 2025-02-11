@@ -30,7 +30,7 @@ class ShippingGetter:
         filtered_responses = []
         for shipping_response in shipping_responses:
             if shipping_response.status_code != 200:
-                logger.error(f"Error with shipping: {shipping_response.status_code} {shipping_response.text}")
+                logger.error(f"Error with shipping: {shipping_response.status_code}")
             else:
                 filtered_responses.append(shipping_response)
         return filtered_responses
