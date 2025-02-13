@@ -4,3 +4,11 @@ class ShippingGetterException (Exception):
 
 class InstanceIsRunningException (Exception):
     pass
+
+
+class TokenExpiredException (Exception):
+    pass
+
+
+class ServerTroubleException (Exception):
+    pass

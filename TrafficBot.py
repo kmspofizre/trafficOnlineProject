@@ -1,15 +1,15 @@
 from typing import Tuple
 from ShippingBooker import ShippingBooker
 from ShippingRequestsHandler import ShippingGetter
-from requests import Session
+from requests import Session, ConnectionError
 from utils import get_ids, save_ids
 from loggersetup import setup_logger
 import json
 import threading
 import time
 from datetime import datetime, timedelta
-from utils import check_process
-from exceptions import InstanceIsRunningException
+from utils import check_process, get_json_data
+from exceptions import InstanceIsRunningException, ServerTroubleException, TokenExpiredException
 
 
 class TrafficBot:
@@ -26,8 +26,7 @@ class TrafficBot:
         self.last_statuses = []
         self.current_statuses = []
         self.last_status_update = datetime.now() + timedelta(hours=3)
-        with open(self.directions_file_path, 'r', encoding='utf-8') as file:
-            self.directions = json.load(file)
+        self.directions = get_json_data(directions_file_path)
         self.thread_lock = threading.Lock()
         super().__init__()
 
@@ -45,6 +44,8 @@ class TrafficBot:
         return getter_updated, booker_updated
 
     def start(self) -> str:
+        self.directions = get_json_data(self.directions_file_path)
+        self.shipping_ids = get_ids(self.data_filename)
         if not self.running:
             self.running = True
             self.thread = threading.Thread(target=self.polling, daemon=True)
@@ -53,6 +54,7 @@ class TrafficBot:
         return "Скрипт уже работает"
 
     def stop(self) -> str:
+        save_ids(self.shipping_ids, self.data_filename)
         if self.running:
             self.running = False
             if self.thread:
@@ -78,16 +80,27 @@ class TrafficBot:
                 j += 1
                 i = len(direction_responses) % 3
                 for shipping_id in shipping_ids:
-                    i += 1
-                    with self.thread_lock:
-                        shipping_booking_response = self.shipping_booker.book_shipping(shipping_id)
-                    shipping_booked = self.shipping_booker.process_booking_response(shipping_booking_response,
-                                                                                    self.logger)
-                    if shipping_booked:
-                        self.shipping_ids.append(shipping_id)
-                    if i % 3:
-                        time.sleep(1)
-                        i = 0
+                    self.logger.info(f"Processing: {shipping_id}")
+                    if shipping_id not in self.shipping_ids:
+                        i += 1
+                        with self.thread_lock:
+                            shipping_booking_response = self.shipping_booker.book_shipping(shipping_id)
+                        shipping_booked = self.shipping_booker.process_booking_response(shipping_booking_response,
+                                                                                        self.logger)
+                        if shipping_booked:
+                            self.shipping_ids.append(shipping_id)
+                        if i % 3:
+                            time.sleep(2)
+                            i = 0
+                    else:
+                        self.logger.info(f"This id was processed before ({shipping_id})")
+            except ServerTroubleException as e:
+                pass
+            except TokenExpiredException as e:
+                pass
+            except ConnectionError as e:
+                # self.stop с сообщением
+                pass
             except Exception as e:
                 self.logger.error(e, exc_info=True)
                 self.logger.error(e.args)
@@ -125,4 +138,3 @@ class TrafficBot:
 
     def get_last_status_update(self):
         return self.last_status_update
-
