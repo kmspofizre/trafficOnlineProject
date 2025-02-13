@@ -33,7 +33,7 @@ class ShippingGetter:
             if shipping_response.status_code != 200:
                 if shipping_response.status_code == 401:
                     raise TokenExpiredException
-                if shipping_response.status_code in (500, 503):
+                if shipping_response.status_code == 503:
                     raise ServerTroubleException
                 logger.error(f"Error with shipping: {shipping_response.status_code}")
             else:
