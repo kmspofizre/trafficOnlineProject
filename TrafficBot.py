@@ -10,6 +10,7 @@ import time
 from datetime import datetime, timedelta
 from utils import check_process, get_json_data
 from exceptions import InstanceIsRunningException, ServerTroubleException, TokenExpiredException
+from refresh import refresh_tokens
 
 
 class TrafficBot:
@@ -28,6 +29,8 @@ class TrafficBot:
         self.last_status_update = datetime.now() + timedelta(hours=3)
         self.directions = get_json_data(directions_file_path)
         self.thread_lock = threading.Lock()
+        self.exit_message = ""
+        self.exit_time = datetime.now() + timedelta(hours=3)
         super().__init__()
 
     def refresh_api_key(self, api_key: str) -> Tuple[bool, bool]:
@@ -44,6 +47,7 @@ class TrafficBot:
         return getter_updated, booker_updated
 
     def start(self) -> str:
+        self.exit_message = ""
         self.directions = get_json_data(self.directions_file_path)
         self.shipping_ids = get_ids(self.data_filename)
         if not self.running:
@@ -55,6 +59,7 @@ class TrafficBot:
 
     def stop(self) -> str:
         save_ids(self.shipping_ids, self.data_filename)
+        self.exit_time = datetime.now() + timedelta(hours=3)
         if self.running:
             self.running = False
             if self.thread:
@@ -77,6 +82,7 @@ class TrafficBot:
                 filtered_direction_responses = self.shipping_getter.filter_shipping_responses_by_status_code(
                     direction_responses, self.logger)
                 shipping_ids = self.shipping_getter.process_shipping_response(filtered_direction_responses)
+                self.logger.info(direction_responses)
                 j += 1
                 i = len(direction_responses) % 3
                 for shipping_id in shipping_ids:
@@ -94,22 +100,23 @@ class TrafficBot:
                             i = 0
                     else:
                         self.logger.info(f"This id was processed before ({shipping_id})")
-            except ServerTroubleException as e:
-                pass
-            except TokenExpiredException as e:
-                pass
-            except ConnectionError as e:
-                # self.stop с сообщением
-                pass
+            except ServerTroubleException:
+                self.exit_message = "Проблемы на внещнем сервере"
+                self.stop()
+            except TokenExpiredException:
+                self.refresh_and_restart()
+            except ConnectionError:
+                self.exit_message = "ConnectionError при попытке запроса"
+                self.stop()
             except Exception as e:
                 self.logger.error(e, exc_info=True)
                 self.logger.error(e.args)
                 time.sleep(2)
-            if j % 60 == 0:
+            if j % 30 == 0:
                 self.last_statuses = list(map(lambda x: x.status_code, direction_responses))
                 self.last_status_update = datetime.now() + timedelta(hours=3)
                 self.logger.info(f"Последние статусы ответов: {self.last_statuses}")
-            if j == 120:
+            if j == 60:
                 try:
                     j = 0
                     save_ids(self.shipping_ids, self.data_filename)
@@ -138,3 +145,25 @@ class TrafficBot:
 
     def get_last_status_update(self):
         return self.last_status_update
+
+    def get_exit_message(self):
+        return self.exit_message
+
+    def refresh_and_restart(self):
+        self.logger.info("Обновляю токены")
+        refresh_status, data = refresh_tokens()
+        time.sleep(2)
+        if refresh_status == 200:
+            getter_updated, booker_updated = self.refresh_api_key(data.get("access_token"))
+            self.logger.info(f"Обновление токенов, статус: {getter_updated}, {booker_updated}")
+        else:
+            self.logger.info(f"Что-то пошло не так при обновлении токенов")
+            self.exit_message = "Не удалось обновить токены"
+            return
+        self.start()
+
+    def get_exit_time(self):
+        return self.exit_time
+
+    def set_exit_message(self, exit_message):
+        self.exit_message = exit_message
