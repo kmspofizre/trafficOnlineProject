@@ -3,6 +3,7 @@ from requests import Session, Response
 from constants import get_shipping_query, headers_get
 from logging import Logger
 import time
+from exceptions import TokenExpiredException, ServerTroubleException
 
 
 class ShippingGetter:
@@ -19,8 +20,8 @@ class ShippingGetter:
         for direction in directions:
             direction_responses.append(self.session.get(get_shipping_query, headers=headers_get, params=direction))
             self.request_counter += 1
+            time.sleep(1)
             if self.request_counter % 3 == 0:
-                time.sleep(1)
                 self.request_counter = 0
         return direction_responses
 
@@ -30,6 +31,10 @@ class ShippingGetter:
         filtered_responses = []
         for shipping_response in shipping_responses:
             if shipping_response.status_code != 200:
+                if shipping_response.status_code == 401:
+                    raise TokenExpiredException
+                if shipping_response.status_code in (500, 503):
+                    raise ServerTroubleException
                 logger.error(f"Error with shipping: {shipping_response.status_code}")
             else:
                 filtered_responses.append(shipping_response)

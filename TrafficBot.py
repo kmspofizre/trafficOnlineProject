@@ -1,7 +1,7 @@
 from typing import Tuple
 from ShippingBooker import ShippingBooker
 from ShippingRequestsHandler import ShippingGetter
-from requests import Session
+from requests import Session, ConnectionError
 from utils import get_ids, save_ids
 from loggersetup import setup_logger
 import json
@@ -9,7 +9,7 @@ import threading
 import time
 from datetime import datetime, timedelta
 from utils import check_process, get_json_data
-from exceptions import InstanceIsRunningException
+from exceptions import InstanceIsRunningException, ServerTroubleException, TokenExpiredException
 
 
 class TrafficBot:
@@ -86,14 +86,21 @@ class TrafficBot:
                         with self.thread_lock:
                             shipping_booking_response = self.shipping_booker.book_shipping(shipping_id)
                         shipping_booked = self.shipping_booker.process_booking_response(shipping_booking_response,
-                                                                                    self.logger)
+                                                                                        self.logger)
                         if shipping_booked:
                             self.shipping_ids.append(shipping_id)
                         if i % 3:
-                            time.sleep(1)
+                            time.sleep(2)
                             i = 0
                     else:
                         self.logger.info(f"This id was processed before ({shipping_id})")
+            except ServerTroubleException as e:
+                pass
+            except TokenExpiredException as e:
+                pass
+            except ConnectionError as e:
+                # self.stop с сообщением
+                pass
             except Exception as e:
                 self.logger.error(e, exc_info=True)
                 self.logger.error(e.args)
@@ -131,4 +138,3 @@ class TrafficBot:
 
     def get_last_status_update(self):
         return self.last_status_update
-
