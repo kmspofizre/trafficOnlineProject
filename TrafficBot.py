@@ -82,7 +82,6 @@ class TrafficBot:
                 filtered_direction_responses = self.shipping_getter.filter_shipping_responses_by_status_code(
                     direction_responses, self.logger)
                 shipping_ids = self.shipping_getter.process_shipping_response(filtered_direction_responses)
-                self.logger.info(direction_responses)
                 j += 1
                 i = len(direction_responses) % 3
                 for shipping_id in shipping_ids:
