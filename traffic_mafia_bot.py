@@ -78,6 +78,7 @@ class TGTraffic:
 
     @trusted_user(check_user)
     async def stop_script(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        self.traffic_bot.set_exit_message(f"Остановлен пользователем {update.message.from_user.username}")
         response_text = self.traffic_bot.stop()
         await update.message.reply_text(response_text)
 
@@ -90,7 +91,10 @@ class TGTraffic:
                                             f"\nВремя обновления: "
                                             f"{self.traffic_bot.get_last_status_update().strftime('%d.%m.%Y %H:%M')}")
         else:
-            await update.message.reply_text("Бот в данный момент не работает 😴")
+
+            await update.message.reply_text(
+                f"Бот в данный момент не работает 😴\nСтатус: {self.traffic_bot.get_exit_message()}\nВремя остановки:"
+                f" {self.traffic_bot.get_exit_time().strftime('%d.%m.%Y %H:%M')}")
 
     @trusted_user(check_user)
     async def update_tokens(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -133,11 +137,3 @@ class TGTraffic:
     /update_tokens - обновление токенов, рекомендуется запустить эту команду, если бот был неактивен больше 10 часов
         """
         await update.message.reply_text(text)
-
-
-
-
-
-
-
-
