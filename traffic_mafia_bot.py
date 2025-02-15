@@ -98,28 +98,14 @@ class TGTraffic:
 
     @trusted_user(check_user)
     async def update_tokens(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        self.logger.info("Обновляю токены")
-        refresh_status, data = refresh_tokens()
-        time.sleep(2)
-        if refresh_status == 200:
-            getter_updated, booker_updated = self.traffic_bot.refresh_api_key(data.get("access_token"))
-            await context.bot.send_message(chat_id=update.message.from_user.id,
-                                           text=f"Обновление токенов, статус: {getter_updated}, {booker_updated}")
-        else:
-            await context.bot.send_message(chat_id=update.message.from_user.id,
-                                           text="Что-то пошло не так при обновлении токенов")
+        getter_updated, booker_updated = self.traffic_bot.refresh_and_restart()
+        await context.bot.send_message(chat_id=update.message.from_user.id,
+                                       text=f"Обновление токенов, статус: {getter_updated}, {booker_updated}")
 
     async def token_refresh(self, context: ContextTypes.DEFAULT_TYPE) -> None:
-        self.logger.info("Обновляю токены")
-        refresh_status, data = refresh_tokens()
-        time.sleep(2)
-        if refresh_status == 200:
-            getter_updated, booker_updated = self.traffic_bot.refresh_api_key(data.get("access_token"))
-            await context.bot.send_message(chat_id=988468804,
-                                           text=f"Обновление токенов, статус: {getter_updated}, {booker_updated}")
-        else:
-            await context.bot.send_message(chat_id=988468804,
-                                           text="Что-то пошло не так при обновлении токенов")
+        getter_updated, booker_updated = self.traffic_bot.refresh_and_restart()
+        await context.bot.send_message(chat_id=988468804,
+                                       text=f"Обновление токенов, статус: {getter_updated}, {booker_updated}")
 
     @trusted_user(check_user)
     async def show_logs(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
