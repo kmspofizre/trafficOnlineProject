@@ -155,11 +155,12 @@ class TrafficBot:
         if refresh_status == 200:
             getter_updated, booker_updated = self.refresh_api_key(data.get("access_token"))
             self.logger.info(f"Обновление токенов, статус: {getter_updated}, {booker_updated}")
+            self.start()
+            return getter_updated, booker_updated
         else:
             self.logger.info(f"Что-то пошло не так при обновлении токенов")
             self.exit_message = "Не удалось обновить токены"
-            return
-        self.start()
+            return False, False
 
     def get_exit_time(self):
         return self.exit_time
