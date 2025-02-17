@@ -6,11 +6,9 @@ from telegram.ext import (
     CommandHandler,
     ContextTypes
 )
-from refresh import refresh_tokens
 from collections import deque
 import functools
 import inspect
-import time
 from TrafficBot import TrafficBot
 from constants import API_key
 
@@ -58,7 +56,7 @@ class TGTraffic:
         return decorator
 
     async def check_user(self, update, context):
-        if update.message.from_user.id in (988468804, 2017350326):
+        if update.message.from_user.id in (988468804, 2017350326, 273012006):
             return True
         else:
             return False
