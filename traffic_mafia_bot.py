@@ -24,6 +24,7 @@ class TGTraffic:
         self.application.add_handler(CommandHandler("update_tokens", self.update_tokens))
         self.application.add_handler(CommandHandler("show_logs", self.show_logs))
         self.application.add_handler(CommandHandler("help", self.help))
+        self.application.add_handler(CommandHandler("show_directions", self.show_directions))
         self.interval = 12 * 3600
         logging.basicConfig(
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -121,3 +122,8 @@ class TGTraffic:
     /update_tokens - обновление токенов, рекомендуется запустить эту команду, если бот был неактивен больше 10 часов
         """
         await update.message.reply_text(text)
+
+    @trusted_user(check_user)
+    async def show_directions(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        directions = self.traffic_bot.get_current_directions_names()
+        await update.message.reply_text(directions)

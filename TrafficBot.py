@@ -13,6 +13,11 @@ from exceptions import InstanceIsRunningException, ServerTroubleException, Token
 from refresh import refresh_tokens
 
 
+# TODO: настройка направлений
+# TODO: удаление направлений
+# TODO: добавление направлений
+
+
 class TrafficBot:
     def __init__(self, api_key: str, data_filename: str, directions_file_path: str):
         self.session = Session()
@@ -48,7 +53,7 @@ class TrafficBot:
 
     def start(self) -> str:
         self.exit_message = ""
-        self.directions = get_json_data(self.directions_file_path)
+        self.directions = get_directions_from_json(self.directions_file_path)
         self.shipping_ids = get_ids(self.data_filename)
         if not self.running:
             self.running = True
@@ -167,3 +172,13 @@ class TrafficBot:
 
     def set_exit_message(self, exit_message):
         self.exit_message = exit_message
+
+    def get_current_directions_names(self):
+        i = 1
+        directions = ""
+        for direction in self.directions:
+            directions += f"{i}. {direction['direction_name']}: " \
+                          f"радиус пункта отправления - {direction['direction_params']['from_radius']} км; " \
+                          f"радиус пункта назначения - {direction['direction_params']['direction_radius']}\n"
+            i += 1
+        return directions

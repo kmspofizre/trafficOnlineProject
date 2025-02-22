@@ -18,7 +18,8 @@ class ShippingGetter:
     def get_shipping_responses(self, directions: List) -> List[Response]:
         direction_responses = []
         for direction in directions:
-            direction_responses.append(self.session.get(get_shipping_query, headers=headers_get, params=direction))
+            direction_data = direction['direction_params']
+            direction_responses.append(self.session.get(get_shipping_query, headers=headers_get, params=direction_data))
             self.request_counter += 1
             time.sleep(1)
             if self.request_counter % 3 == 0:
