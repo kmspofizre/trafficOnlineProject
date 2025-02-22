@@ -42,6 +42,6 @@ def save_json(json_filename, data):
         json.dump(data, file, ensure_ascii=False, indent=4)
 
 
-def get_json_data(json_filename):
+def get_directions_from_json(json_filename):
     with open(json_filename, 'r', encoding='utf-8') as file:
         return json.load(file)

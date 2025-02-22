@@ -8,7 +8,7 @@ import json
 import threading
 import time
 from datetime import datetime, timedelta
-from utils import check_process, get_json_data
+from utils import check_process, get_directions_from_json
 from exceptions import InstanceIsRunningException, ServerTroubleException, TokenExpiredException
 from refresh import refresh_tokens
 
@@ -27,7 +27,7 @@ class TrafficBot:
         self.last_statuses = []
         self.current_statuses = []
         self.last_status_update = datetime.now() + timedelta(hours=3)
-        self.directions = get_json_data(directions_file_path)
+        self.directions = get_directions_from_json(directions_file_path)
         self.thread_lock = threading.Lock()
         self.exit_message = ""
         self.exit_time = datetime.now() + timedelta(hours=3)
