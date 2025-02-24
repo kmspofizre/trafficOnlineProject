@@ -99,8 +99,8 @@ class TrafficBot:
                                                                                         self.logger)
                         if shipping_booked:
                             self.shipping_ids.append(shipping_id)
-                        if i % 3:
-                            time.sleep(2)
+                        if i % 3 == 0:
+                            time.sleep(1)
                             i = 0
                     else:
                         self.logger.info(f"This id was processed before ({shipping_id})")

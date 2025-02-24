@@ -1,6 +1,6 @@
 from requests import Session
 from dadata import Dadata
-from constants import dadata_token, dadata_secret, fias_query
+from constants import dadata_token, dadata_secret, fias_query, headers_get
 
 
 class FIASHandler:
@@ -14,7 +14,7 @@ class FIASHandler:
         return object_fias
 
     def compare_fias_with_traffic(self, object_fias):
-        get_object_from_traffic = self.session.get(f"{fias_query}{object_fias}")
+        get_object_from_traffic = self.session.get(f"{fias_query}{object_fias}", headers=headers_get)
         if get_object_from_traffic.status_code == 200:
             return True
         else:
