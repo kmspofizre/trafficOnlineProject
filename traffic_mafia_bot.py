@@ -6,11 +6,9 @@ from telegram.ext import (
     CommandHandler,
     ContextTypes
 )
-from refresh import refresh_tokens
 from collections import deque
 import functools
 import inspect
-import time
 from TrafficBot import TrafficBot
 from constants import API_key
 
@@ -26,6 +24,7 @@ class TGTraffic:
         self.application.add_handler(CommandHandler("update_tokens", self.update_tokens))
         self.application.add_handler(CommandHandler("show_logs", self.show_logs))
         self.application.add_handler(CommandHandler("help", self.help))
+        self.application.add_handler(CommandHandler("show_directions", self.show_directions))
         self.interval = 12 * 3600
         logging.basicConfig(
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -58,7 +57,7 @@ class TGTraffic:
         return decorator
 
     async def check_user(self, update, context):
-        if update.message.from_user.id in (988468804, 2017350326):
+        if update.message.from_user.id in (988468804, 2017350326, 273012006):
             return True
         else:
             return False
@@ -98,28 +97,14 @@ class TGTraffic:
 
     @trusted_user(check_user)
     async def update_tokens(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        self.logger.info("Обновляю токены")
-        refresh_status, data = refresh_tokens()
-        time.sleep(2)
-        if refresh_status == 200:
-            getter_updated, booker_updated = self.traffic_bot.refresh_api_key(data.get("access_token"))
-            await context.bot.send_message(chat_id=update.message.from_user.id,
-                                           text=f"Обновление токенов, статус: {getter_updated}, {booker_updated}")
-        else:
-            await context.bot.send_message(chat_id=update.message.from_user.id,
-                                           text="Что-то пошло не так при обновлении токенов")
+        getter_updated, booker_updated = self.traffic_bot.refresh_and_restart()
+        await context.bot.send_message(chat_id=update.message.from_user.id,
+                                       text=f"Обновление токенов, статус: {getter_updated}, {booker_updated}")
 
     async def token_refresh(self, context: ContextTypes.DEFAULT_TYPE) -> None:
-        self.logger.info("Обновляю токены")
-        refresh_status, data = refresh_tokens()
-        time.sleep(2)
-        if refresh_status == 200:
-            getter_updated, booker_updated = self.traffic_bot.refresh_api_key(data.get("access_token"))
-            await context.bot.send_message(chat_id=988468804,
-                                           text=f"Обновление токенов, статус: {getter_updated}, {booker_updated}")
-        else:
-            await context.bot.send_message(chat_id=988468804,
-                                           text="Что-то пошло не так при обновлении токенов")
+        getter_updated, booker_updated = self.traffic_bot.refresh_and_restart()
+        await context.bot.send_message(chat_id=988468804,
+                                       text=f"Обновление токенов, статус: {getter_updated}, {booker_updated}")
 
     @trusted_user(check_user)
     async def show_logs(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -137,3 +122,8 @@ class TGTraffic:
     /update_tokens - обновление токенов, рекомендуется запустить эту команду, если бот был неактивен больше 10 часов
         """
         await update.message.reply_text(text)
+
+    @trusted_user(check_user)
+    async def show_directions(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        directions = self.traffic_bot.get_current_directions_names()
+        await update.message.reply_text(directions)

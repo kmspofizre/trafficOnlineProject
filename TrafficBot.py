@@ -8,9 +8,14 @@ import json
 import threading
 import time
 from datetime import datetime, timedelta
-from utils import check_process, get_json_data
+from utils import check_process, get_directions_from_json
 from exceptions import InstanceIsRunningException, ServerTroubleException, TokenExpiredException
 from refresh import refresh_tokens
+
+
+# TODO: настройка направлений
+# TODO: удаление направлений
+# TODO: добавление направлений
 
 
 class TrafficBot:
@@ -27,7 +32,7 @@ class TrafficBot:
         self.last_statuses = []
         self.current_statuses = []
         self.last_status_update = datetime.now() + timedelta(hours=3)
-        self.directions = get_json_data(directions_file_path)
+        self.directions = get_directions_from_json(directions_file_path)
         self.thread_lock = threading.Lock()
         self.exit_message = ""
         self.exit_time = datetime.now() + timedelta(hours=3)
@@ -48,7 +53,7 @@ class TrafficBot:
 
     def start(self) -> str:
         self.exit_message = ""
-        self.directions = get_json_data(self.directions_file_path)
+        self.directions = get_directions_from_json(self.directions_file_path)
         self.shipping_ids = get_ids(self.data_filename)
         if not self.running:
             self.running = True
@@ -94,8 +99,8 @@ class TrafficBot:
                                                                                         self.logger)
                         if shipping_booked:
                             self.shipping_ids.append(shipping_id)
-                        if i % 3:
-                            time.sleep(2)
+                        if i % 3 == 0:
+                            time.sleep(1)
                             i = 0
                     else:
                         self.logger.info(f"This id was processed before ({shipping_id})")
@@ -155,14 +160,25 @@ class TrafficBot:
         if refresh_status == 200:
             getter_updated, booker_updated = self.refresh_api_key(data.get("access_token"))
             self.logger.info(f"Обновление токенов, статус: {getter_updated}, {booker_updated}")
+            self.start()
+            return getter_updated, booker_updated
         else:
             self.logger.info(f"Что-то пошло не так при обновлении токенов")
             self.exit_message = "Не удалось обновить токены"
-            return
-        self.start()
+            return False, False
 
     def get_exit_time(self):
         return self.exit_time
 
     def set_exit_message(self, exit_message):
         self.exit_message = exit_message
+
+    def get_current_directions_names(self):
+        i = 1
+        directions = ""
+        for direction in self.directions:
+            directions += f"{i}. {direction['direction_name']}: " \
+                          f"радиус пункта отправления - {direction['direction_params']['from_radius']} км; " \
+                          f"радиус пункта назначения - {direction['direction_params']['direction_radius']}\n"
+            i += 1
+        return directions
