@@ -15,6 +15,7 @@ get_shipping_query = "https://api.traffic.online/api/v1/request_view"
 post_application_query = "https://api.traffic.online/api/v1/shipping_requests/"
 auth_query = "https://api.traffic.online/api/v1/auth/token"
 fias_query = "https://api.traffic.online/api/v1/catalog/address/"
+shipping_info_query = "https://api.traffic.online/api/{version}/request_view/"
 
 headers_auth = {
     "Content-Type": "application/json",

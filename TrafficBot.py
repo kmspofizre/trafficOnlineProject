@@ -11,6 +11,8 @@ from datetime import datetime, timedelta
 from utils import check_process, get_directions_from_json
 from exceptions import InstanceIsRunningException, ServerTroubleException, TokenExpiredException
 from refresh import refresh_tokens
+from utils import get_shipping_info_from_json
+from constants import shipping_info_query
 
 
 # TODO: настройка направлений
@@ -36,6 +38,9 @@ class TrafficBot:
         self.thread_lock = threading.Lock()
         self.exit_message = ""
         self.exit_time = datetime.now() + timedelta(hours=3)
+        self.last_booked = []
+        if not hasattr(self.shipping_getter, "get_shipping_info_by_id"):
+            raise AttributeError("Method get_shipping_info_by_id is missing!")
         super().__init__()
 
     def refresh_api_key(self, api_key: str) -> Tuple[bool, bool]:
@@ -99,13 +104,14 @@ class TrafficBot:
                                                                                         self.logger)
                         if shipping_booked:
                             self.shipping_ids.append(shipping_id)
+                            self.last_booked.append(shipping_id)
                         if i % 3 == 0:
                             time.sleep(1)
                             i = 0
                     else:
                         self.logger.info(f"This id was processed before ({shipping_id})")
             except ServerTroubleException:
-                self.exit_message = "Проблемы на внещнем сервере"
+                self.exit_message = "Проблемы на внешнем сервере"
                 self.stop()
             except TokenExpiredException:
                 self.refresh_and_restart()
@@ -182,3 +188,16 @@ class TrafficBot:
                           f"радиус пункта назначения - {direction['direction_params']['direction_radius']}\n"
             i += 1
         return directions
+
+    def get_shipping_info_by_id(self, shipping_id) -> str:
+        ship_info = self.session.get(f"{shipping_info_query}{shipping_id}")
+        shipping_json = ship_info.json()
+        shipping_info_string = get_shipping_info_from_json(shipping_json)
+        return shipping_info_string
+
+    def get_last_booked_string(self):
+        shipping_string = list(map(lambda x: self.get_shipping_info_by_id(x), self.last_booked))
+        return "\n".join(shipping_string)
+
+    def clear_last_booked(self):
+        self.last_booked = []
