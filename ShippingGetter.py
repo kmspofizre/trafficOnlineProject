@@ -1,11 +1,11 @@
-from pydantic import BaseModel
 from typing import Dict, List
 import json
 from requests import Session, Response
 from constants import get_shipping_query, headers_get
 
 
-class ShippingGetter(BaseModel):
+
+class ShippingGetter:
 
     shipping_request_data_spb_to_msc: Dict[str, str]
     shipping_request_data_msc_to_spb: Dict[str, str]
@@ -46,3 +46,5 @@ class ShippingGetter(BaseModel):
             return True
         except KeyError as e:
             return False
+
+
