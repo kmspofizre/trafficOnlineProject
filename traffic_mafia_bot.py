@@ -36,6 +36,7 @@ class TGTraffic:
 
     def run(self):
         self.application.job_queue.run_repeating(self.token_refresh, interval=self.interval, first=0)
+        self.application.job_queue.run_repeating(self.check_booked_shipping, inteval=120, first=0)
         self.application.run_polling()
 
     @staticmethod
@@ -105,6 +106,13 @@ class TGTraffic:
         getter_updated, booker_updated = self.traffic_bot.refresh_and_restart()
         await context.bot.send_message(chat_id=988468804,
                                        text=f"Обновление токенов, статус: {getter_updated}, {booker_updated}")
+
+    async def check_booked_shipping(self, context: ContextTypes.DEFAULT_TYPE) -> None:
+        shipping_string = self.traffic_bot.get_last_booked_string()
+        self.traffic_bot.clear_last_booked()
+        if shipping_string != "":
+            for user in (988468804, 2017350326, 273012006):
+                await context.bot.send_message(chat_id=user, text=shipping_string)
 
     @trusted_user(check_user)
     async def show_logs(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

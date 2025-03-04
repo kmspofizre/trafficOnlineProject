@@ -45,3 +45,23 @@ def save_json(json_filename, data):
 def get_directions_from_json(json_filename):
     with open(json_filename, 'r', encoding='utf-8') as file:
         return json.load(file)
+
+
+def get_shipping_info_from_json(json_string):
+    data = json.loads(json_string)
+
+    route_points = data.get("route_points", [])
+
+    if len(route_points) >= 2:
+        from_point = route_points[0].get("location", {}).get("city", "Неизвестно")
+        to_point = route_points[-1].get("location", {}).get("city", "Неизвестно")
+    else:
+        from_point, to_point = "Неизвестно", "Неизвестно"
+
+    dates = []
+    for point in route_points:
+        supply_range = point.get("car_supply_range", [])
+        for period in supply_range:
+            dates.append(period.get("from"))
+
+    return f"Пункт отправления: {from_point}\nПункт назначения: {to_point}\nДаты перевозки: {dates}"
