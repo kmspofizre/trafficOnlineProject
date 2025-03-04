@@ -39,8 +39,6 @@ class TrafficBot:
         self.exit_message = ""
         self.exit_time = datetime.now() + timedelta(hours=3)
         self.last_booked = []
-        if not hasattr(self.shipping_getter, "get_shipping_info_by_id"):
-            raise AttributeError("Method get_shipping_info_by_id is missing!")
         super().__init__()
 
     def refresh_api_key(self, api_key: str) -> Tuple[bool, bool]:
