@@ -36,7 +36,7 @@ class TGTraffic:
 
     def run(self):
         self.application.job_queue.run_repeating(self.token_refresh, interval=self.interval, first=0)
-        self.application.job_queue.run_repeating(self.check_booked_shipping, interval=120, first=0)
+        # self.application.job_queue.run_repeating(self.check_booked_shipping, interval=120, first=0)
         self.application.run_polling()
 
     @staticmethod
