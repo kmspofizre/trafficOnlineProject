@@ -20,6 +20,7 @@ class ShippingBooker:
     def process_booking_response(booking_response: Response, logger: Logger) -> bool:
         if booking_response.status_code == 200:
             logger.info("Gotcha!")
+            logger.info(booking_response.json())
             return True
         else:
             logger.error(f"Couldn't book this shipping with error code: {booking_response.status_code}")
