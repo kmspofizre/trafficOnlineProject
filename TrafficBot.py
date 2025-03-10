@@ -164,7 +164,8 @@ class TrafficBot:
         if refresh_status == 200:
             getter_updated, booker_updated = self.refresh_api_key(data.get("access_token"))
             self.logger.info(f"Обновление токенов, статус: {getter_updated}, {booker_updated}")
-            self.start()
+            if self.running:
+                self.start()
             return getter_updated, booker_updated
         else:
             self.logger.info(f"Что-то пошло не так при обновлении токенов")
