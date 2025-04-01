@@ -1,24 +1,292 @@
 [
   {
-    "direction_name": "Москва - Питер",
-    "direction_params": {
-      "max_tonnage": "10",
-      "from_location_id": "652db5a5-55b5-11da-81e1-00112fdd6583",
-      "from_radius": "300",
-      "type": "shipping_request",
-      "direction_location_id": "04f59a69-3bc9-11da-8059-00112fdd6583",
-      "direction_radius": "300"
-    }
+    "group_name": "Из Москвы",
+    "group_id": "1",
+    "group_directions": [
+      {
+        "direction_id": "1",
+        "active": false,
+        "direction_name": "Москва - Питер",
+        "direction_params": {
+          "max_tonnage": "10",
+          "from_location_id": "0c5b2444-70a0-4932-980c-b4dc0d3f02b5",
+          "from_radius": "300",
+          "type": "shipping_request",
+          "direction_location_id": "c2deb16a-0330-4f05-821f-1d09c93331e6",
+          "direction_radius": "300"
+        }
+      },
+      {
+        "direction_id": "2",
+        "active": false,
+        "direction_name": "Москва - Казань",
+        "direction_params": {
+          "max_tonnage": "10",
+          "from_location_id": "0c5b2444-70a0-4932-980c-b4dc0d3f02b5",
+          "from_radius": "300",
+          "type": "shipping_request",
+          "direction_location_id": "93b3df57-4c89-44df-ac42-96f05e9cd3b9",
+          "direction_radius": "300"
+        }
+      },
+      {
+        "direction_id": "3",
+        "active": false,
+        "direction_name": "Москва - Краснодар",
+        "direction_params": {
+          "max_tonnage": "10",
+          "from_location_id": "0c5b2444-70a0-4932-980c-b4dc0d3f02b5",
+          "from_radius": "300",
+          "type": "shipping_request",
+          "direction_location_id": "7dfa745e-aa19-4688-b121-b655c11e482f",
+          "direction_radius": "300"
+        }
+      },
+      {
+        "direction_id": "4",
+        "active": false,
+        "direction_name": "Москва - Ростов-на-Дону",
+        "direction_params": {
+          "max_tonnage": "10",
+          "from_location_id": "0c5b2444-70a0-4932-980c-b4dc0d3f02b5",
+          "from_radius": "300",
+          "type": "shipping_request",
+          "direction_location_id": "c1cfe4b9-f7c2-423c-abfa-6ed1c05a15c5",
+          "direction_radius": "300"
+        }
+      }
+    ]
   },
   {
-    "direction_name": "Питер - Москва",
-    "direction_params": {
-      "max_tonnage": "10",
-      "from_location_id": "04f59a69-3bc9-11da-8059-00112fdd6583",
-      "from_radius": "300",
-      "type": "shipping_request",
-      "direction_location_id": "652db5a5-55b5-11da-81e1-00112fdd6583",
-      "direction_radius": "300"
-    }
+    "group_name": "Из Питера",
+    "group_id": "2",
+    "group_directions": [
+      {
+        "direction_id": "5",
+        "active": false,
+        "direction_name": "Питер - Москва",
+        "direction_params": {
+          "max_tonnage": "10",
+          "from_location_id": "c2deb16a-0330-4f05-821f-1d09c93331e6",
+          "from_radius": "300",
+          "type": "shipping_request",
+          "direction_location_id": "0c5b2444-70a0-4932-980c-b4dc0d3f02b5",
+          "direction_radius": "300"
+        }
+      },
+      {
+        "direction_id": "6",
+        "active": false,
+        "direction_name": "Питер - Казань",
+        "direction_params": {
+          "max_tonnage": "10",
+          "from_location_id": "c2deb16a-0330-4f05-821f-1d09c93331e6",
+          "from_radius": "300",
+          "type": "shipping_request",
+          "direction_location_id": "93b3df57-4c89-44df-ac42-96f05e9cd3b9",
+          "direction_radius": "300"
+        }
+      },
+      {
+        "direction_id": "7",
+        "active": false,
+        "direction_name": "Питер - Краснодар",
+        "direction_params": {
+          "max_tonnage": "10",
+          "from_location_id": "c2deb16a-0330-4f05-821f-1d09c93331e6",
+          "from_radius": "300",
+          "type": "shipping_request",
+          "direction_location_id": "7dfa745e-aa19-4688-b121-b655c11e482f",
+          "direction_radius": "300"
+        }
+      },
+      {
+        "direction_id": "8",
+        "active": false,
+        "direction_name": "Питер - Ростов-на-Дону",
+        "direction_params": {
+          "max_tonnage": "10",
+          "from_location_id": "c2deb16a-0330-4f05-821f-1d09c93331e6",
+          "from_radius": "300",
+          "type": "shipping_request",
+          "direction_location_id": "c1cfe4b9-f7c2-423c-abfa-6ed1c05a15c5",
+          "direction_radius": "300"
+        }
+      }
+    ]
+  },
+  {
+    "group_name": "Из Казани",
+    "group_id": "3",
+    "group_directions": [
+      {
+        "direction_id": "9",
+        "active": false,
+        "direction_name": "Казань - Питер",
+        "direction_params": {
+          "max_tonnage": "10",
+          "from_location_id": "93b3df57-4c89-44df-ac42-96f05e9cd3b9",
+          "from_radius": "300",
+          "type": "shipping_request",
+          "direction_location_id": "c2deb16a-0330-4f05-821f-1d09c93331e6",
+          "direction_radius": "300"
+        }
+      },
+      {
+        "direction_id": "10",
+        "active": false,
+        "direction_name": "Казань - Москва",
+        "direction_params": {
+          "max_tonnage": "10",
+          "from_location_id": "93b3df57-4c89-44df-ac42-96f05e9cd3b9",
+          "from_radius": "300",
+          "type": "shipping_request",
+          "direction_location_id": "0c5b2444-70a0-4932-980c-b4dc0d3f02b5",
+          "direction_radius": "300"
+        }
+      },
+      {
+        "direction_id": "11",
+        "active": false,
+        "direction_name": "Казань - Краснодар",
+        "direction_params": {
+          "max_tonnage": "10",
+          "from_location_id": "93b3df57-4c89-44df-ac42-96f05e9cd3b9",
+          "from_radius": "300",
+          "type": "shipping_request",
+          "direction_location_id": "7dfa745e-aa19-4688-b121-b655c11e482f",
+          "direction_radius": "300"
+        }
+      },
+      {
+        "direction_id": "12",
+        "active": false,
+        "direction_name": "Казань - Ростов-на-Дону",
+        "direction_params": {
+          "max_tonnage": "10",
+          "from_location_id": "93b3df57-4c89-44df-ac42-96f05e9cd3b9",
+          "from_radius": "300",
+          "type": "shipping_request",
+          "direction_location_id": "c1cfe4b9-f7c2-423c-abfa-6ed1c05a15c5",
+          "direction_radius": "300"
+        }
+      }
+    ]
+  },
+  {
+    "group_name": "Из Ростова-на-Дону",
+    "group_id": "4",
+    "group_directions": [
+      {
+        "direction_id": "13",
+        "active": false,
+        "direction_name": "Ростов-на-Дону - Москва",
+        "direction_params": {
+          "max_tonnage": "10",
+          "from_location_id": "c1cfe4b9-f7c2-423c-abfa-6ed1c05a15c5",
+          "from_radius": "300",
+          "type": "shipping_request",
+          "direction_location_id": "0c5b2444-70a0-4932-980c-b4dc0d3f02b5",
+          "direction_radius": "300"
+        }
+      },
+      {
+        "direction_id": "14",
+        "active": false,
+        "direction_name": "Ростов-на-Дону - Питер",
+        "direction_params": {
+          "max_tonnage": "10",
+          "from_location_id": "c1cfe4b9-f7c2-423c-abfa-6ed1c05a15c5",
+          "from_radius": "300",
+          "type": "shipping_request",
+          "direction_location_id": "c2deb16a-0330-4f05-821f-1d09c93331e6",
+          "direction_radius": "300"
+        }
+      },
+      {
+        "direction_id": "15",
+        "active": false,
+        "direction_name": "Ростов-на-Дону - Казань",
+        "direction_params": {
+          "max_tonnage": "10",
+          "from_location_id": "c1cfe4b9-f7c2-423c-abfa-6ed1c05a15c5",
+          "from_radius": "300",
+          "type": "shipping_request",
+          "direction_location_id": "93b3df57-4c89-44df-ac42-96f05e9cd3b9",
+          "direction_radius": "300"
+        }
+      },
+      {
+        "direction_id": "16",
+        "active": false,
+        "direction_name": "Ростов-на-Дону - Краснодар",
+        "direction_params": {
+          "max_tonnage": "10",
+          "from_location_id": "c1cfe4b9-f7c2-423c-abfa-6ed1c05a15c5",
+          "from_radius": "300",
+          "type": "shipping_request",
+          "direction_location_id": "7dfa745e-aa19-4688-b121-b655c11e482f",
+          "direction_radius": "300"
+        }
+      }
+    ]
+  },
+  {
+    "group_name": "Из Краснодара",
+    "group_id": "5",
+    "group_directions": [
+      {
+        "direction_id": "17",
+        "active": false,
+        "direction_name": "Краснодар - Москва",
+        "direction_params": {
+          "max_tonnage": "10",
+          "from_location_id": "7dfa745e-aa19-4688-b121-b655c11e482f",
+          "from_radius": "300",
+          "type": "shipping_request",
+          "direction_location_id": "0c5b2444-70a0-4932-980c-b4dc0d3f02b5",
+          "direction_radius": "300"
+        }
+      },
+      {
+        "direction_id": "18",
+        "active": false,
+        "direction_name": "Краснодар - Питер",
+        "direction_params": {
+          "max_tonnage": "10",
+          "from_location_id": "7dfa745e-aa19-4688-b121-b655c11e482f",
+          "from_radius": "300",
+          "type": "shipping_request",
+          "direction_location_id": "c2deb16a-0330-4f05-821f-1d09c93331e6",
+          "direction_radius": "300"
+        }
+      },
+      {
+        "direction_id": "19",
+        "active": false,
+        "direction_name": "Краснодар - Казань",
+        "direction_params": {
+          "max_tonnage": "10",
+          "from_location_id": "7dfa745e-aa19-4688-b121-b655c11e482f",
+          "from_radius": "300",
+          "type": "shipping_request",
+          "direction_location_id": "93b3df57-4c89-44df-ac42-96f05e9cd3b9",
+          "direction_radius": "300"
+        }
+      },
+      {
+        "direction_id": "20",
+        "active": false,
+        "direction_name": "Краснодар - Ростов-на-Дону",
+        "direction_params": {
+          "max_tonnage": "10",
+          "from_location_id": "7dfa745e-aa19-4688-b121-b655c11e482f",
+          "from_radius": "300",
+          "type": "shipping_request",
+          "direction_location_id": "c1cfe4b9-f7c2-423c-abfa-6ed1c05a15c5",
+          "direction_radius": "300"
+        }
+      }
+    ]
   }
 ]
