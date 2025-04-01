@@ -15,11 +15,6 @@ from utils import get_shipping_info_from_json
 from constants import shipping_info_query
 
 
-# TODO: настройка направлений
-# TODO: удаление направлений
-# TODO: добавление направлений
-
-
 class TrafficBot:
     def __init__(self, api_key: str, data_filename: str, directions_file_path: str):
         self.session = Session()
@@ -39,6 +34,7 @@ class TrafficBot:
         self.exit_message = ""
         self.exit_time = datetime.now() + timedelta(hours=3)
         self.last_booked = []
+        self.activated_directions = []
         super().__init__()
 
     def refresh_api_key(self, api_key: str) -> Tuple[bool, bool]:
@@ -86,7 +82,7 @@ class TrafficBot:
         while self.running:
             try:
                 with self.thread_lock:
-                    direction_responses = self.shipping_getter.get_shipping_responses(self.directions)
+                    direction_responses = self.shipping_getter.get_shipping_responses(self.activated_directions)
                 filtered_direction_responses = self.shipping_getter.filter_shipping_responses_by_status_code(
                     direction_responses, self.logger)
                 shipping_ids = self.shipping_getter.process_shipping_response(filtered_direction_responses)

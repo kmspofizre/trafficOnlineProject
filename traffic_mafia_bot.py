@@ -1,10 +1,13 @@
 import logging
-from constants import tg_token
-from telegram import Update
+from constants import tg_token, main_menu_markup
+from telegram import Update, ReplyKeyboardRemove
 from telegram.ext import (
     Application,
     CommandHandler,
-    ContextTypes
+    ContextTypes,
+    ConversationHandler,
+    MessageHandler,
+    filters
 )
 from collections import deque
 import functools
@@ -12,6 +15,7 @@ import inspect
 from TrafficBot import TrafficBot
 from constants import API_key
 
+MAIN_MENU, DIRECTIONS_MENU, CITY_MENU = range(3)
 
 class TGTraffic:
     def __init__(self, data_path, directions_path):
@@ -25,6 +29,15 @@ class TGTraffic:
         self.application.add_handler(CommandHandler("show_logs", self.show_logs))
         self.application.add_handler(CommandHandler("help", self.help))
         self.application.add_handler(CommandHandler("show_directions", self.show_directions))
+        self.application.add_handler(ConversationHandler(
+        entry_points=[CommandHandler("start", self.start)],
+        states={
+            MAIN_MENU: [MessageHandler(filters.TEXT & ~filters.COMMAND, self.main_menu_handler)],
+            DIRECTIONS_MENU: [MessageHandler(filters.TEXT & ~filters.COMMAND, self.directions_menu_handler)],
+            CITY_MENU: [MessageHandler(filters.TEXT & ~filters.COMMAND, self.city_menu_handler)],
+        },
+        fallbacks=[CommandHandler("cancel", self.cancel)],
+    ))
         self.interval = 12 * 3600
         logging.basicConfig(
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -68,7 +81,8 @@ class TGTraffic:
         self.logger.info(update.message.from_user)
         self.logger.info(update.message.from_user.id)
         await update.message.reply_text(
-            "Привет! Проверка связи, теперь мне могут писать только два человека"
+            "Привет! Traffic Mafia бот на связи, выбери одну из опций",
+            reply_markup=main_menu_markup
         )
 
     @trusted_user(check_user)
@@ -135,3 +149,23 @@ class TGTraffic:
     async def show_directions(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         directions = self.traffic_bot.get_current_directions_names()
         await update.message.reply_text(directions)
+
+    @trusted_user(check_user)
+    async def main_menu_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+        pass
+
+    @trusted_user(check_user)
+    async def directions_menu_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+        pass
+
+    @trusted_user(check_user)
+    async def city_menu_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+        pass
+
+    @trusted_user(check_user)
+    async def cancel(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+        await update.message.reply_text(
+            "Мафия уходит на покой...\nНо только на время",
+            reply_markup=ReplyKeyboardRemove()
+        )
+        return ConversationHandler.END

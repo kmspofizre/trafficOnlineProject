@@ -1,5 +1,6 @@
 import dotenv
 import os
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
 
 
 dotenv.load_dotenv()
@@ -42,3 +43,19 @@ login_password = {
     "username": login,
     "password": password
 }
+
+
+main_menu_keyboard = [
+    ["Статус 📈", "Справка ℹ️"],
+    ["Посмотреть логи 🔍", "Запустить скрипт ▶️"],
+    ["Остановить скрипт ⛔️", "Направления 🚘"]
+]
+main_menu_markup = ReplyKeyboardMarkup(main_menu_keyboard, resize_keyboard=True)
+
+directions_menu_keyboard = [
+    ["Из Москвы 🏙", "Из Питера 🌉"],
+    ["Из Казани 🕌", "Из Ростова-на-Дону 🌊"],
+    ["Из Краснодара 🌳"],
+    ["Назад"]
+]
+directions_menu_markup = ReplyKeyboardMarkup(directions_menu_keyboard, resize_keyboard=True)
