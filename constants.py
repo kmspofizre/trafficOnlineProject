@@ -12,6 +12,11 @@ tg_token = os.getenv("BOT_TOKEN")
 dadata_secret = os.getenv("DADATA_TOKEN")
 dadata_token = os.getenv("DADATA_API")
 
+
+class JsonManagerException(Exception):
+    pass
+
+
 get_shipping_query = "https://api.traffic.online/api/v1/request_view"
 post_application_query = "https://api.traffic.online/api/v1/shipping_requests/"
 auth_query = "https://api.traffic.online/api/v1/auth/token"
@@ -55,7 +60,7 @@ main_menu_markup = ReplyKeyboardMarkup(main_menu_keyboard, resize_keyboard=True)
 directions_menu_keyboard = [
     ["Из Москвы 🏙", "Из Питера 🌉"],
     ["Из Казани 🕌", "Из Ростова-на-Дону 🌊"],
-    ["Из Краснодара 🌳"],
+    ["Из Краснодара 🌳", "Посмотреть активные 🧭"],
     ["Назад"]
 ]
 directions_menu_markup = ReplyKeyboardMarkup(directions_menu_keyboard, resize_keyboard=True)

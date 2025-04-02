@@ -1,10 +1,10 @@
 [
   {
-    "group_name": "Из Москвы",
-    "group_id": "1",
+    "group_name": "Из Москвы 🏙",
+    "group_id": "0",
     "group_directions": [
       {
-        "direction_id": "1",
+        "direction_id": "0",
         "active": false,
         "direction_name": "Москва - Питер",
         "direction_params": {
@@ -17,7 +17,7 @@
         }
       },
       {
-        "direction_id": "2",
+        "direction_id": "1",
         "active": false,
         "direction_name": "Москва - Казань",
         "direction_params": {
@@ -30,7 +30,7 @@
         }
       },
       {
-        "direction_id": "3",
+        "direction_id": "2",
         "active": false,
         "direction_name": "Москва - Краснодар",
         "direction_params": {
@@ -43,7 +43,7 @@
         }
       },
       {
-        "direction_id": "4",
+        "direction_id": "3",
         "active": false,
         "direction_name": "Москва - Ростов-на-Дону",
         "direction_params": {
@@ -58,11 +58,11 @@
     ]
   },
   {
-    "group_name": "Из Питера",
-    "group_id": "2",
+    "group_name": "Из Питера 🌉",
+    "group_id": "1",
     "group_directions": [
       {
-        "direction_id": "5",
+        "direction_id": "0",
         "active": false,
         "direction_name": "Питер - Москва",
         "direction_params": {
@@ -75,7 +75,7 @@
         }
       },
       {
-        "direction_id": "6",
+        "direction_id": "1",
         "active": false,
         "direction_name": "Питер - Казань",
         "direction_params": {
@@ -88,7 +88,7 @@
         }
       },
       {
-        "direction_id": "7",
+        "direction_id": "2",
         "active": false,
         "direction_name": "Питер - Краснодар",
         "direction_params": {
@@ -101,7 +101,7 @@
         }
       },
       {
-        "direction_id": "8",
+        "direction_id": "3",
         "active": false,
         "direction_name": "Питер - Ростов-на-Дону",
         "direction_params": {
@@ -116,11 +116,11 @@
     ]
   },
   {
-    "group_name": "Из Казани",
-    "group_id": "3",
+    "group_name": "Из Казани 🕌",
+    "group_id": "2",
     "group_directions": [
       {
-        "direction_id": "9",
+        "direction_id": "0",
         "active": false,
         "direction_name": "Казань - Питер",
         "direction_params": {
@@ -133,7 +133,7 @@
         }
       },
       {
-        "direction_id": "10",
+        "direction_id": "1",
         "active": false,
         "direction_name": "Казань - Москва",
         "direction_params": {
@@ -146,7 +146,7 @@
         }
       },
       {
-        "direction_id": "11",
+        "direction_id": "2",
         "active": false,
         "direction_name": "Казань - Краснодар",
         "direction_params": {
@@ -159,7 +159,7 @@
         }
       },
       {
-        "direction_id": "12",
+        "direction_id": "3",
         "active": false,
         "direction_name": "Казань - Ростов-на-Дону",
         "direction_params": {
@@ -174,11 +174,11 @@
     ]
   },
   {
-    "group_name": "Из Ростова-на-Дону",
-    "group_id": "4",
+    "group_name": "Из Ростова-на-Дону 🌊",
+    "group_id": "3",
     "group_directions": [
       {
-        "direction_id": "13",
+        "direction_id": "0",
         "active": false,
         "direction_name": "Ростов-на-Дону - Москва",
         "direction_params": {
@@ -191,7 +191,7 @@
         }
       },
       {
-        "direction_id": "14",
+        "direction_id": "1",
         "active": false,
         "direction_name": "Ростов-на-Дону - Питер",
         "direction_params": {
@@ -204,7 +204,7 @@
         }
       },
       {
-        "direction_id": "15",
+        "direction_id": "2",
         "active": false,
         "direction_name": "Ростов-на-Дону - Казань",
         "direction_params": {
@@ -217,7 +217,7 @@
         }
       },
       {
-        "direction_id": "16",
+        "direction_id": "3",
         "active": false,
         "direction_name": "Ростов-на-Дону - Краснодар",
         "direction_params": {
@@ -232,11 +232,11 @@
     ]
   },
   {
-    "group_name": "Из Краснодара",
-    "group_id": "5",
+    "group_name": "Из Краснодара 🌳",
+    "group_id": "4",
     "group_directions": [
       {
-        "direction_id": "17",
+        "direction_id": "0",
         "active": false,
         "direction_name": "Краснодар - Москва",
         "direction_params": {
@@ -249,7 +249,7 @@
         }
       },
       {
-        "direction_id": "18",
+        "direction_id": "1",
         "active": false,
         "direction_name": "Краснодар - Питер",
         "direction_params": {
@@ -262,7 +262,7 @@
         }
       },
       {
-        "direction_id": "19",
+        "direction_id": "2",
         "active": false,
         "direction_name": "Краснодар - Казань",
         "direction_params": {
@@ -275,7 +275,7 @@
         }
       },
       {
-        "direction_id": "20",
+        "direction_id": "3",
         "active": false,
         "direction_name": "Краснодар - Ростов-на-Дону",
         "direction_params": {

@@ -14,12 +14,14 @@ import functools
 import inspect
 from TrafficBot import TrafficBot
 from constants import API_key
+from JsonManager import JsonManager
 
 MAIN_MENU, DIRECTIONS_MENU, CITY_MENU = range(3)
 
 class TGTraffic:
     def __init__(self, data_path, directions_path):
         self.traffic_bot = TrafficBot(API_key, data_path, directions_path)
+        self.jm = JsonManager(directions_path)
         self.application = Application.builder().token(tg_token).build()
         self.application.add_handler(CommandHandler("activate_script", self.activate_script))
         self.application.add_handler(CommandHandler("stop_script", self.stop_script))
@@ -194,7 +196,27 @@ class TGTraffic:
 
     @trusted_user(check_user)
     async def directions_menu_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-        pass
+        text = update.message.text
+        if text in ("Из Москвы 🏙", "Из Питера 🌉", "Из Казани 🕌", "Из Ростова-на-Дону 🌊", "Из Краснодара 🌳"):
+            direction_group = self.jm.get_group_by_name(text)
+            if direction_group:
+                keyboard = self.jm.make_directions_keyboard(direction_group)
+                print(keyboard)
+                await update.message.reply_text(f"Направления {text}", reply_markup=keyboard)
+                return DIRECTIONS_MENU
+
+        elif text == "Посмотреть активные 🧭":
+            await update.message.reply_text("Выберите город:", reply_markup=directions_menu_markup)
+            return DIRECTIONS_MENU
+        elif text == "Назад":
+            await update.message.reply_text("Возвращаемся:", reply_markup=main_menu_markup)
+            return MAIN_MENU
+        else:
+            await update.message.reply_text(
+                "Неизвестная команда. Пожалуйста, выберите действие из меню.",
+                reply_markup=main_menu_markup
+            )
+            return DIRECTIONS_MENU
 
     @trusted_user(check_user)
     async def city_menu_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -207,4 +229,14 @@ class TGTraffic:
             reply_markup=ReplyKeyboardRemove()
         )
         return ConversationHandler.END
+
+    async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        query = update.callback_query
+        await query.answer()
+
+
+        if query.data == 'back':
+            await query.message.delete()
+            return
+
 
