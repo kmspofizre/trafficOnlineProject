@@ -85,14 +85,29 @@ class JsonManager:
         for direction in directions:
             if direction.get("active"):
                 directions_items.append([InlineKeyboardButton(direction.get("direction_name") + " ✅",
-                                                             callback_data=f'{group}'
+                                                             callback_data=f'sd_{group}'
                                                                            f'_{direction.get("direction_id")}')])
             else:
                 directions_items.append([InlineKeyboardButton(direction.get("direction_name") + " ❌",
-                                                             callback_data=f'{group}'
+                                                             callback_data=f'sd_{group}'
                                                                            f'_{direction.get("direction_id")}')])
 
 
         directions_items.append([InlineKeyboardButton("Назад", callback_data='back')])
 
         return InlineKeyboardMarkup(directions_items)
+
+    def make_active_directions_keyboard(self) -> InlineKeyboardMarkup:
+        keyboard = []
+        for group in self.data:
+            group_id = group.get("group_id")
+            group_name = group.get("group_name")
+            for direction in group.get("group_directions", []):
+                if direction.get("active"):
+                    direction_id = direction.get("direction_id")
+                    direction_name = direction.get("direction_name")
+                    button_text = f"{group_name} - {direction_name} ✅"
+                    callback_data = f"ac_{group_id}_{direction_id}"
+                    keyboard.append([InlineKeyboardButton(text=button_text, callback_data=callback_data)])
+        keyboard.append([InlineKeyboardButton(text="Назад", callback_data="back")])
+        return InlineKeyboardMarkup(keyboard)

@@ -17,7 +17,7 @@ from constants import API_key
 from JsonManager import JsonManager
 from telegram.error import BadRequest
 
-#TODO: активные направления, изменение статуса направления
+#TODO: сохранение json
 #TODO: refresh изменений в боте
 
 
@@ -215,7 +215,9 @@ class TGTraffic:
 
         elif text == "Посмотреть активные 🧭":
             await self.delete_last_inline()
-            await update.message.reply_text("Выберите город:", reply_markup=directions_menu_markup)
+            active_keyboard = self.jm.make_active_directions_keyboard()
+            self.last_inline_message = await update.message.reply_text("Активные направления:",
+                                                                       reply_markup=active_keyboard)
             return DIRECTIONS_MENU
         elif text == "Назад":
             await self.delete_last_inline()
@@ -248,11 +250,16 @@ class TGTraffic:
             await query.message.delete()
             return
 
-        direction_ids = query.data.split('_')
-        if len(direction_ids) == 2:
-            self.jm.invert_direction_active(direction_ids[0], direction_ids[1])
-            updated_keyboard = self.jm.make_directions_keyboard(direction_ids[0])
-            await query.edit_message_reply_markup(reply_markup=updated_keyboard)
+        direction_info = query.data.split('_')
+        if len(direction_info) == 3:
+            if direction_info[0] == "sd":
+                self.jm.invert_direction_active(direction_info[1], direction_info[2])
+                updated_keyboard = self.jm.make_directions_keyboard(direction_info[1])
+                await query.edit_message_reply_markup(reply_markup=updated_keyboard)
+            elif direction_info[0] == "ac":
+                self.jm.invert_direction_active(direction_info[1], direction_info[2])
+                updated_keyboard = self.jm.make_active_directions_keyboard()
+                await query.edit_message_reply_markup(reply_markup=updated_keyboard)
 
     async def delete_last_inline(self):
         if self.last_inline_message is not None:
@@ -260,6 +267,8 @@ class TGTraffic:
                 await self.last_inline_message.delete()
             except BadRequest:
                 pass
+
+
 
 
 
