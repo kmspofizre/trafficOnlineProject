@@ -7,7 +7,7 @@ from telegram.ext import (
     ContextTypes,
     ConversationHandler,
     MessageHandler,
-    filters
+    filters, CallbackQueryHandler
 )
 from collections import deque
 import functools
@@ -15,6 +15,7 @@ import inspect
 from TrafficBot import TrafficBot
 from constants import API_key
 from JsonManager import JsonManager
+from telegram.error import BadRequest
 
 MAIN_MENU, DIRECTIONS_MENU, CITY_MENU = range(3)
 
@@ -30,6 +31,8 @@ class TGTraffic:
         self.application.add_handler(CommandHandler("show_logs", self.show_logs))
         self.application.add_handler(CommandHandler("help", self.help))
         self.application.add_handler(CommandHandler("show_directions", self.show_directions))
+        self.application.add_handler(CallbackQueryHandler(self.direction_callback))
+        self.last_inline_message = None
         self.application.add_handler(ConversationHandler(
         entry_points=[CommandHandler("start", self.start)],
         states={
@@ -199,10 +202,14 @@ class TGTraffic:
         text = update.message.text
         if text in ("Из Москвы 🏙", "Из Питера 🌉", "Из Казани 🕌", "Из Ростова-на-Дону 🌊", "Из Краснодара 🌳"):
             direction_group = self.jm.get_group_by_name(text)
+            if self.last_inline_message is not None:
+                try:
+                    await self.last_inline_message.delete()
+                except BadRequest:
+                    pass
             if direction_group:
                 keyboard = self.jm.make_directions_keyboard(direction_group)
-                print(keyboard)
-                await update.message.reply_text(f"Направления {text}", reply_markup=keyboard)
+                self.last_inline_message = await update.message.reply_text(f"Направления {text}", reply_markup=keyboard)
                 return DIRECTIONS_MENU
 
         elif text == "Посмотреть активные 🧭":
@@ -230,13 +237,14 @@ class TGTraffic:
         )
         return ConversationHandler.END
 
-    async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def direction_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         query = update.callback_query
-        await query.answer()
-
-
         if query.data == 'back':
             await query.message.delete()
             return
+        await query.answer()
+
+
+
 
 

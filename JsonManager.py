@@ -4,9 +4,6 @@ from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 
 class JsonManager:
     def __init__(self, file_path: str = None):
-        """
-        Если передана строка с JSON, загружаем данные из неё, иначе инициализируем пустой список.
-        """
         if file_path:
             self.data = []
             self.load_from_file(file_path)
@@ -34,10 +31,6 @@ class JsonManager:
         return None
 
     def get_direction_by_id(self, group_id: str, direction_id: str) -> dict:
-        """
-        Возвращает словарь направления по его идентификатору внутри заданной группы.
-        Если группа или направление не найдены, возвращается None.
-        """
         group = self.get_group_by_id(group_id)
         if group:
             for direction in group.get("group_directions", []):
@@ -46,10 +39,6 @@ class JsonManager:
         return None
 
     def update_direction_active(self, group_id: str, direction_id: str, active: bool) -> bool:
-        """
-        Изменяет значение поля 'active' для направления в заданной группе.
-        Возвращает True, если обновление прошло успешно, иначе False.
-        """
         direction = self.get_direction_by_id(group_id, direction_id)
         if direction is not None:
             direction["active"] = active
@@ -61,10 +50,6 @@ class JsonManager:
         return direction["active"]
 
     def update_direction_param(self, group_id: str, direction_id: str, param_name: str, param_value) -> bool:
-        """
-        Изменяет произвольный параметр в 'direction_params' для указанного направления.
-        Возвращает True, если параметр найден и обновлён, иначе False.
-        """
         direction = self.get_direction_by_id(group_id, direction_id)
         if direction:
             direction_params = direction.get("direction_params", {})
@@ -74,10 +59,6 @@ class JsonManager:
         return False
 
     def get_directions_for_group(self, group_id: str) -> list:
-        """
-        Возвращает список всех направлений для заданной группы.
-        Если группа не найдена, возвращает пустой список.
-        """
         group = self.get_group_by_id(group_id)
         if group:
             return group.get("group_directions", [])
