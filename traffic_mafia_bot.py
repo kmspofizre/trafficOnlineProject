@@ -21,7 +21,6 @@ class TGTraffic:
     def __init__(self, data_path, directions_path):
         self.traffic_bot = TrafficBot(API_key, data_path, directions_path)
         self.application = Application.builder().token(tg_token).build()
-        self.application.add_handler(CommandHandler("start", self.start))
         self.application.add_handler(CommandHandler("activate_script", self.activate_script))
         self.application.add_handler(CommandHandler("stop_script", self.stop_script))
         self.application.add_handler(CommandHandler("status", self.status))
@@ -42,8 +41,8 @@ class TGTraffic:
         logging.basicConfig(
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
             level=logging.INFO,
-            filename='logs/tg.log',
-            filemode='a'
+            #filename='logs/tg.log',
+            #filemode='a'
         )
         self.logger = logging.getLogger(__name__)
 
@@ -77,18 +76,19 @@ class TGTraffic:
             return False
 
     @trusted_user(check_user)
-    async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         self.logger.info(update.message.from_user)
         self.logger.info(update.message.from_user.id)
         await update.message.reply_text(
             "Привет! Traffic Mafia бот на связи, выбери одну из опций",
             reply_markup=main_menu_markup
         )
+        return MAIN_MENU
 
     def get_help(self) -> str:
         return (
             "Справка:\n"
-            "1. Статус — показывает текущее состояние.\n"
+            "1. Статус — показывает текущее состояние бота.\n"
             "2. Справка — выводит это сообщение.\n"
             "3. Посмотреть логи — показывает логи.\n"
             "4. Запустить скрипт — запускает скрипт.\n"
@@ -154,33 +154,34 @@ class TGTraffic:
     @trusted_user(check_user)
     async def main_menu_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         text = update.message.text
-
-        if text == "Статус":
+        print("here")
+        if text == "Статус 📈":
+            print("here2")
             await update.message.reply_text(self.traffic_bot.get_operating_status(), reply_markup=main_menu_markup)
             return MAIN_MENU
 
-        elif text == "Справка":
+        elif text == "Справка ℹ️":
             await update.message.reply_text(self.get_help(), reply_markup=main_menu_markup)
             return MAIN_MENU
 
-        elif text == "Посмотреть логи":
+        elif text == "Посмотреть логи 🔍":
             with open("logs/bot_info.log", 'r', encoding='utf-8') as f:
                 last_lines = deque(f, maxlen=10)
                 await update.message.reply_text(f"Последние 10 записей из логов:\n{''.join(last_lines)}")
             return MAIN_MENU
 
-        elif text == "Запустить скрипт":
+        elif text == "Запустить скрипт ▶":
             response_text = self.traffic_bot.start()
             await update.message.reply_text(response_text)
             return MAIN_MENU
 
-        elif text == "Остановить скрипт":
+        elif text == "Остановить скрипт ⛔":
             self.traffic_bot.set_exit_message(f"Остановлен пользователем {update.message.from_user.username}")
             response_text = self.traffic_bot.stop()
             await update.message.reply_text(response_text)
             return MAIN_MENU
 
-        elif text == "Направления":
+        elif text == "Направления 🚘":
             await update.message.reply_text("Выберите город:", reply_markup=directions_menu_markup)
             return DIRECTIONS_MENU
 
