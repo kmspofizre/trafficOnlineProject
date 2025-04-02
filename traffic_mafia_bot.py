@@ -17,6 +17,10 @@ from constants import API_key
 from JsonManager import JsonManager
 from telegram.error import BadRequest
 
+#TODO: активные направления, изменение статуса направления
+#TODO: refresh изменений в боте
+
+
 MAIN_MENU, DIRECTIONS_MENU, CITY_MENU = range(3)
 
 class TGTraffic:
@@ -33,6 +37,7 @@ class TGTraffic:
         self.application.add_handler(CommandHandler("show_directions", self.show_directions))
         self.application.add_handler(CallbackQueryHandler(self.direction_callback))
         self.last_inline_message = None
+        self.last_group_id = None
         self.application.add_handler(ConversationHandler(
         entry_points=[CommandHandler("start", self.start)],
         states={
@@ -202,23 +207,22 @@ class TGTraffic:
         text = update.message.text
         if text in ("Из Москвы 🏙", "Из Питера 🌉", "Из Казани 🕌", "Из Ростова-на-Дону 🌊", "Из Краснодара 🌳"):
             direction_group = self.jm.get_group_by_name(text)
-            if self.last_inline_message is not None:
-                try:
-                    await self.last_inline_message.delete()
-                except BadRequest:
-                    pass
+            await self.delete_last_inline()
             if direction_group:
                 keyboard = self.jm.make_directions_keyboard(direction_group)
                 self.last_inline_message = await update.message.reply_text(f"Направления {text}", reply_markup=keyboard)
                 return DIRECTIONS_MENU
 
         elif text == "Посмотреть активные 🧭":
+            await self.delete_last_inline()
             await update.message.reply_text("Выберите город:", reply_markup=directions_menu_markup)
             return DIRECTIONS_MENU
         elif text == "Назад":
+            await self.delete_last_inline()
             await update.message.reply_text("Возвращаемся:", reply_markup=main_menu_markup)
             return MAIN_MENU
         else:
+            await self.delete_last_inline()
             await update.message.reply_text(
                 "Неизвестная команда. Пожалуйста, выберите действие из меню.",
                 reply_markup=main_menu_markup
@@ -239,10 +243,23 @@ class TGTraffic:
 
     async def direction_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         query = update.callback_query
+        await query.answer()
         if query.data == 'back':
             await query.message.delete()
             return
-        await query.answer()
+
+        direction_ids = query.data.split('_')
+        if len(direction_ids) == 2:
+            self.jm.invert_direction_active(direction_ids[0], direction_ids[1])
+            updated_keyboard = self.jm.make_directions_keyboard(direction_ids[0])
+            await query.edit_message_reply_markup(reply_markup=updated_keyboard)
+
+    async def delete_last_inline(self):
+        if self.last_inline_message is not None:
+            try:
+                await self.last_inline_message.delete()
+            except BadRequest:
+                pass
 
 
 

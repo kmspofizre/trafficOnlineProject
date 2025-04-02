@@ -24,10 +24,10 @@ class JsonManager:
                 return group
         return None
 
-    def get_group_by_name(self, group_name: str) -> dict:
+    def get_group_by_name(self, group_name: str) -> str:
         for group in self.data:
             if group.get("group_name") == group_name:
-                return group
+                return group.get("group_id")
         return None
 
     def get_direction_by_id(self, group_id: str, direction_id: str) -> dict:
@@ -42,6 +42,13 @@ class JsonManager:
         direction = self.get_direction_by_id(group_id, direction_id)
         if direction is not None:
             direction["active"] = active
+            return True
+        return False
+
+    def invert_direction_active(self, group_id: str, direction_id: str) -> bool:
+        direction = self.get_direction_by_id(group_id, direction_id)
+        if direction is not None:
+            direction["active"] = not direction["active"]
             return True
         return False
 
@@ -70,18 +77,19 @@ class JsonManager:
             return direction.get("direction_params")
         return {}
 
-    @staticmethod
-    def make_directions_keyboard(group: dict) -> InlineKeyboardMarkup:
-        directions = group.get("group_directions", [])
+
+    def make_directions_keyboard(self, group: str) -> InlineKeyboardMarkup:
+        gr = self.get_group_by_id(group)
+        directions = gr.get("group_directions", [])
         directions_items = []
         for direction in directions:
             if direction.get("active"):
                 directions_items.append([InlineKeyboardButton(direction.get("direction_name") + " ✅",
-                                                             callback_data=f'{group.get("group_id")}'
+                                                             callback_data=f'{group}'
                                                                            f'_{direction.get("direction_id")}')])
             else:
                 directions_items.append([InlineKeyboardButton(direction.get("direction_name") + " ❌",
-                                                             callback_data=f'{group.get("group_id")}'
+                                                             callback_data=f'{group}'
                                                                            f'_{direction.get("direction_id")}')])
 
 
