@@ -1,5 +1,5 @@
 from traffic_mafia_bot import TGTraffic
-# comment for push
+
 data, directions = "data.csv", "jsons/directions.json"
 
 if __name__ == '__main__':

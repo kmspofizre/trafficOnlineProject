@@ -1,5 +1,5 @@
 import logging
-from constants import tg_token, main_menu_markup
+from constants import tg_token, main_menu_markup, directions_menu_markup
 from telegram import Update, ReplyKeyboardRemove
 from telegram.ext import (
     Application,
@@ -85,6 +85,17 @@ class TGTraffic:
             reply_markup=main_menu_markup
         )
 
+    def get_help(self) -> str:
+        return (
+            "Справка:\n"
+            "1. Статус — показывает текущее состояние.\n"
+            "2. Справка — выводит это сообщение.\n"
+            "3. Посмотреть логи — показывает логи.\n"
+            "4. Запустить скрипт — запускает скрипт.\n"
+            "5. Остановить скрипт — останавливает скрипт.\n"
+            "6. Направления — позволяет выбрать направления."
+        )
+
     @trusted_user(check_user)
     async def activate_script(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         response_text = self.traffic_bot.start()
@@ -98,17 +109,7 @@ class TGTraffic:
 
     @trusted_user(check_user)
     async def status(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        process_running = self.traffic_bot.is_running()
-        if process_running:
-            await update.message.reply_text("Бот на охоте за грузами 😈"
-                                            f"\nПоследние статусы ответов: {self.traffic_bot.get_last_statuses()}"
-                                            f"\nВремя обновления: "
-                                            f"{self.traffic_bot.get_last_status_update().strftime('%d.%m.%Y %H:%M')}")
-        else:
-
-            await update.message.reply_text(
-                f"Бот в данный момент не работает 😴\nСтатус: {self.traffic_bot.get_exit_message()}\nВремя остановки:"
-                f" {self.traffic_bot.get_exit_time().strftime('%d.%m.%Y %H:%M')}")
+        await update.message.reply_text(self.traffic_bot.get_operating_status())
 
     @trusted_user(check_user)
     async def update_tokens(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -152,7 +153,43 @@ class TGTraffic:
 
     @trusted_user(check_user)
     async def main_menu_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-        pass
+        text = update.message.text
+
+        if text == "Статус":
+            await update.message.reply_text(self.traffic_bot.get_operating_status(), reply_markup=main_menu_markup)
+            return MAIN_MENU
+
+        elif text == "Справка":
+            await update.message.reply_text(self.get_help(), reply_markup=main_menu_markup)
+            return MAIN_MENU
+
+        elif text == "Посмотреть логи":
+            with open("logs/bot_info.log", 'r', encoding='utf-8') as f:
+                last_lines = deque(f, maxlen=10)
+                await update.message.reply_text(f"Последние 10 записей из логов:\n{''.join(last_lines)}")
+            return MAIN_MENU
+
+        elif text == "Запустить скрипт":
+            response_text = self.traffic_bot.start()
+            await update.message.reply_text(response_text)
+            return MAIN_MENU
+
+        elif text == "Остановить скрипт":
+            self.traffic_bot.set_exit_message(f"Остановлен пользователем {update.message.from_user.username}")
+            response_text = self.traffic_bot.stop()
+            await update.message.reply_text(response_text)
+            return MAIN_MENU
+
+        elif text == "Направления":
+            await update.message.reply_text("Выберите город:", reply_markup=directions_menu_markup)
+            return DIRECTIONS_MENU
+
+        else:
+            await update.message.reply_text(
+                "Неизвестная команда. Пожалуйста, выберите действие из меню.",
+                reply_markup=main_menu_markup
+            )
+            return MAIN_MENU
 
     @trusted_user(check_user)
     async def directions_menu_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -169,3 +206,4 @@ class TGTraffic:
             reply_markup=ReplyKeyboardRemove()
         )
         return ConversationHandler.END
+

@@ -128,6 +128,9 @@ class TrafficBot:
                 except Exception as e:
                     self.logger.error(f"Something went wrong during id saving: {e}")
 
+    def polling_without_booking(self):
+        pass
+
     def check_instances(self) -> bool:
         number_of_processes = check_process()[1]
         if number_of_processes <= 1:
@@ -196,3 +199,15 @@ class TrafficBot:
 
     def clear_last_booked(self):
         self.last_booked = []
+
+    def get_operating_status(self):
+        running = self.is_running()
+        if running:
+            status = "Бот на охоте за грузами 😈"
+            f"\nПоследние статусы ответов: {self.traffic_bot.get_last_statuses()}"
+            f"\nВремя обновления: "
+            f"{self.traffic_bot.get_last_status_update().strftime('%d.%m.%Y %H:%M')}"
+        else:
+            status = (f"Бот в данный момент не работает 😴\nСтатус:"
+                      f" {self.get_exit_message()}\nВремя остановки: {self.get_exit_time().strftime('%d.%m.%Y %H:%M')}")
+        return status
