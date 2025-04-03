@@ -48,8 +48,8 @@ class TGTraffic:
         logging.basicConfig(
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
             level=logging.INFO,
-            #filename='logs/tg.log',
-            #filemode='a'
+            filename='logs/tg.log',
+            filemode='a'
         )
         self.logger = logging.getLogger(__name__)
 
@@ -186,6 +186,7 @@ class TGTraffic:
 
         elif text == "Остановить скрипт":
             self.traffic_bot.set_exit_message(f"Остановлен пользователем {update.message.from_user.username}")
+            self.jm.save()
             response_text = self.traffic_bot.stop()
             await update.message.reply_text(response_text)
             return MAIN_MENU
