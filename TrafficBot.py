@@ -29,7 +29,7 @@ class TrafficBot:
         self.last_statuses = []
         self.current_statuses = []
         self.last_status_update = datetime.now() + timedelta(hours=3)
-        self.directions = get_directions_from_json(directions_file_path)
+        self.directions = []
         self.thread_lock = threading.Lock()
         self.exit_message = ""
         self.exit_time = datetime.now() + timedelta(hours=3)
@@ -128,9 +128,6 @@ class TrafficBot:
                 except Exception as e:
                     self.logger.error(f"Something went wrong during id saving: {e}")
 
-    def polling_without_booking(self):
-        pass
-
     def check_instances(self) -> bool:
         number_of_processes = check_process()[1]
         if number_of_processes <= 1:
@@ -140,9 +137,8 @@ class TrafficBot:
             self.logger.info(f"Количество процессов: {number_of_processes}")
             return False
 
-    def refresh_directions(self):
-        with open(self.directions_file_path, 'r', encoding='utf-8') as file:
-            self.directions = json.load(file)
+    def refresh_directions(self, active_directions):
+        self.activated_directions = active_directions
 
     def is_running(self):
         return self.running
@@ -211,3 +207,5 @@ class TrafficBot:
             status = (f"Бот в данный момент не работает 😴\nСтатус:"
                       f" {self.get_exit_message()}\nВремя остановки: {self.get_exit_time().strftime('%d.%m.%Y %H:%M')}")
         return status
+
+

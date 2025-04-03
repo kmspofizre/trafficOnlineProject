@@ -1,4 +1,6 @@
 import json
+from typing import List
+
 from constants import JsonManagerException
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 
@@ -6,6 +8,7 @@ class JsonManager:
     def __init__(self, file_path: str = None):
         if file_path:
             self.data = []
+            self.file_path = file_path
             self.load_from_file(file_path)
         else:
             raise JsonManagerException("Не передан или не найден файл с данными")
@@ -14,8 +17,8 @@ class JsonManager:
         with open(file_path, "r", encoding="utf-8") as f:
             self.data = json.load(f)
 
-    def save_to_file(self, file_path: str) -> None:
-        with open(file_path, "w", encoding="utf-8") as f:
+    def save(self) -> None:
+        with open(self.file_path, "w", encoding="utf-8") as f:
             json.dump(self.data, f, indent=4, ensure_ascii=False)
 
     def get_group_by_id(self, group_id: str) -> dict:
@@ -96,6 +99,17 @@ class JsonManager:
         directions_items.append([InlineKeyboardButton("Назад", callback_data='back')])
 
         return InlineKeyboardMarkup(directions_items)
+
+    def get_active_directions(self):
+        pass
+
+    def get_active_directions_params(self) -> List:
+        active_directions = []
+        for group in self.data:
+            for direction in group.get("group_directions", []):
+                if direction.get("active"):
+                    active_directions.append(direction.get("direction_params"))
+        return active_directions
 
     def make_active_directions_keyboard(self) -> InlineKeyboardMarkup:
         keyboard = []

@@ -254,10 +254,12 @@ class TGTraffic:
         if len(direction_info) == 3:
             if direction_info[0] == "sd":
                 self.jm.invert_direction_active(direction_info[1], direction_info[2])
+                self.jm.save()
                 updated_keyboard = self.jm.make_directions_keyboard(direction_info[1])
                 await query.edit_message_reply_markup(reply_markup=updated_keyboard)
             elif direction_info[0] == "ac":
                 self.jm.invert_direction_active(direction_info[1], direction_info[2])
+                self.jm.save()
                 updated_keyboard = self.jm.make_active_directions_keyboard()
                 await query.edit_message_reply_markup(reply_markup=updated_keyboard)
 
