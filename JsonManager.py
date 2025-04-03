@@ -18,6 +18,7 @@ class JsonManager:
             self.data = json.load(f)
 
     def save(self) -> None:
+        print("saving data")
         with open(self.file_path, "w", encoding="utf-8") as f:
             json.dump(self.data, f, indent=4, ensure_ascii=False)
 

@@ -22,6 +22,7 @@ post_application_query = "https://api.traffic.online/api/v1/shipping_requests/"
 auth_query = "https://api.traffic.online/api/v1/auth/token"
 fias_query = "https://api.traffic.online/api/v1/catalog/address/"
 shipping_info_query = "https://api.traffic.online/api/{version}/request_view/"
+get_all_shippings_query = "https://api.traffic.online/api/v1/shippings/"
 
 headers_auth = {
     "Content-Type": "application/json",
@@ -42,6 +43,11 @@ headers_get = {
     "Authorization": ""
 }
 
+hg = {
+"User-Agent": "Mozilla/5.0",
+    "Authorization": f"Bearer {API_key}"
+}
+
 
 login_password = {
     "grant_type": "password",
@@ -52,8 +58,8 @@ login_password = {
 
 main_menu_keyboard = [
     ["Статус 📈", "Справка ℹ️"],
-    ["Посмотреть логи 🔍", "Запустить скрипт ▶️"],
-    ["Остановить скрипт ⛔️", "Направления 🚘"]
+    ["Посмотреть логи 🔍", "Запустить скрипт"],
+    ["Остановить скрипт", "Направления 🚘"]
 ]
 main_menu_markup = ReplyKeyboardMarkup(main_menu_keyboard, resize_keyboard=True)
 

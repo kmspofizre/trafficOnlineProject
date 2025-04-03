@@ -17,16 +17,13 @@ from constants import API_key
 from JsonManager import JsonManager
 from telegram.error import BadRequest
 
-#TODO: сохранение json
-#TODO: refresh изменений в боте
-
 
 MAIN_MENU, DIRECTIONS_MENU, CITY_MENU = range(3)
 
 class TGTraffic:
     def __init__(self, data_path, directions_path):
-        self.traffic_bot = TrafficBot(API_key, data_path, directions_path)
         self.jm = JsonManager(directions_path)
+        self.traffic_bot = TrafficBot(API_key, data_path, directions_path)
         self.application = Application.builder().token(tg_token).build()
         self.application.add_handler(CommandHandler("activate_script", self.activate_script))
         self.application.add_handler(CommandHandler("stop_script", self.stop_script))
@@ -108,6 +105,7 @@ class TGTraffic:
 
     @trusted_user(check_user)
     async def activate_script(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        self.traffic_bot.refresh_directions(self.jm.get_active_directions())
         response_text = self.traffic_bot.start()
         await update.message.reply_text(response_text)
 
@@ -180,12 +178,13 @@ class TGTraffic:
                 await update.message.reply_text(f"Последние 10 записей из логов:\n{''.join(last_lines)}")
             return MAIN_MENU
 
-        elif text == "Запустить скрипт ▶":
+        elif text == "Запустить скрипт":
+            self.traffic_bot.refresh_directions(self.jm.get_active_directions_params())
             response_text = self.traffic_bot.start()
             await update.message.reply_text(response_text)
             return MAIN_MENU
 
-        elif text == "Остановить скрипт ⛔":
+        elif text == "Остановить скрипт":
             self.traffic_bot.set_exit_message(f"Остановлен пользователем {update.message.from_user.username}")
             response_text = self.traffic_bot.stop()
             await update.message.reply_text(response_text)
@@ -255,11 +254,13 @@ class TGTraffic:
             if direction_info[0] == "sd":
                 self.jm.invert_direction_active(direction_info[1], direction_info[2])
                 self.jm.save()
+                self.traffic_bot.refresh_directions(self.jm.get_active_directions_params())
                 updated_keyboard = self.jm.make_directions_keyboard(direction_info[1])
                 await query.edit_message_reply_markup(reply_markup=updated_keyboard)
             elif direction_info[0] == "ac":
                 self.jm.invert_direction_active(direction_info[1], direction_info[2])
                 self.jm.save()
+                self.traffic_bot.refresh_directions(self.jm.get_active_directions_params())
                 updated_keyboard = self.jm.make_active_directions_keyboard()
                 await query.edit_message_reply_markup(reply_markup=updated_keyboard)
 

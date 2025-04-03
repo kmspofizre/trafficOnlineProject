@@ -18,7 +18,7 @@ class ShippingGetter:
     def get_shipping_responses(self, directions: List) -> List[Response]:
         direction_responses = []
         for direction in directions:
-            direction_data = direction['direction_params']
+            direction_data = direction
             direction_responses.append(self.session.get(get_shipping_query, headers=headers_get, params=direction_data))
             self.request_counter += 1
             if self.request_counter % 2 == 0:
@@ -36,7 +36,8 @@ class ShippingGetter:
                     raise TokenExpiredException
                 if shipping_response.status_code == 503:
                     raise ServerTroubleException
-                logger.error(f"Error with shipping: {shipping_response.status_code}")
+                logger.error(f"Error with shipping: {shipping_response.status_code}"
+                             f"shipping response: {shipping_response.text}")
             else:
                 filtered_responses.append(shipping_response)
         return filtered_responses
