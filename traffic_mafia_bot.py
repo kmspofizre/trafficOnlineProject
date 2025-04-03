@@ -1,23 +1,30 @@
 import logging
-from constants import tg_token
-from telegram import Update
+from constants import tg_token, main_menu_markup, directions_menu_markup
+from telegram import Update, ReplyKeyboardRemove
 from telegram.ext import (
     Application,
     CommandHandler,
-    ContextTypes
+    ContextTypes,
+    ConversationHandler,
+    MessageHandler,
+    filters, CallbackQueryHandler
 )
 from collections import deque
 import functools
 import inspect
 from TrafficBot import TrafficBot
 from constants import API_key
+from JsonManager import JsonManager
+from telegram.error import BadRequest
 
+
+MAIN_MENU, DIRECTIONS_MENU, CITY_MENU = range(3)
 
 class TGTraffic:
     def __init__(self, data_path, directions_path):
+        self.jm = JsonManager(directions_path)
         self.traffic_bot = TrafficBot(API_key, data_path, directions_path)
         self.application = Application.builder().token(tg_token).build()
-        self.application.add_handler(CommandHandler("start", self.start))
         self.application.add_handler(CommandHandler("activate_script", self.activate_script))
         self.application.add_handler(CommandHandler("stop_script", self.stop_script))
         self.application.add_handler(CommandHandler("status", self.status))
@@ -25,6 +32,18 @@ class TGTraffic:
         self.application.add_handler(CommandHandler("show_logs", self.show_logs))
         self.application.add_handler(CommandHandler("help", self.help))
         self.application.add_handler(CommandHandler("show_directions", self.show_directions))
+        self.application.add_handler(CallbackQueryHandler(self.direction_callback))
+        self.last_inline_message = None
+        self.last_group_id = None
+        self.application.add_handler(ConversationHandler(
+        entry_points=[CommandHandler("start", self.start)],
+        states={
+            MAIN_MENU: [MessageHandler(filters.TEXT & ~filters.COMMAND, self.main_menu_handler)],
+            DIRECTIONS_MENU: [MessageHandler(filters.TEXT & ~filters.COMMAND, self.directions_menu_handler)],
+            CITY_MENU: [MessageHandler(filters.TEXT & ~filters.COMMAND, self.city_menu_handler)],
+        },
+        fallbacks=[CommandHandler("cancel", self.cancel)],
+    ))
         self.interval = 12 * 3600
         logging.basicConfig(
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -64,15 +83,29 @@ class TGTraffic:
             return False
 
     @trusted_user(check_user)
-    async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         self.logger.info(update.message.from_user)
         self.logger.info(update.message.from_user.id)
         await update.message.reply_text(
-            "Привет! Проверка связи, теперь мне могут писать только два человека"
+            "Привет! Traffic Mafia бот на связи, выбери одну из опций",
+            reply_markup=main_menu_markup
+        )
+        return MAIN_MENU
+
+    def get_help(self) -> str:
+        return (
+            "Справка:\n"
+            "1. Статус — показывает текущее состояние бота.\n"
+            "2. Справка — выводит это сообщение.\n"
+            "3. Посмотреть логи — показывает логи.\n"
+            "4. Запустить скрипт — запускает скрипт.\n"
+            "5. Остановить скрипт — останавливает скрипт.\n"
+            "6. Направления — позволяет выбрать направления."
         )
 
     @trusted_user(check_user)
     async def activate_script(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        self.traffic_bot.refresh_directions(self.jm.get_active_directions())
         response_text = self.traffic_bot.start()
         await update.message.reply_text(response_text)
 
@@ -84,17 +117,7 @@ class TGTraffic:
 
     @trusted_user(check_user)
     async def status(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        process_running = self.traffic_bot.is_running()
-        if process_running:
-            await update.message.reply_text("Бот на охоте за грузами 😈"
-                                            f"\nПоследние статусы ответов: {self.traffic_bot.get_last_statuses()}"
-                                            f"\nВремя обновления: "
-                                            f"{self.traffic_bot.get_last_status_update().strftime('%d.%m.%Y %H:%M')}")
-        else:
-
-            await update.message.reply_text(
-                f"Бот в данный момент не работает 😴\nСтатус: {self.traffic_bot.get_exit_message()}\nВремя остановки:"
-                f" {self.traffic_bot.get_exit_time().strftime('%d.%m.%Y %H:%M')}")
+        await update.message.reply_text(self.traffic_bot.get_operating_status())
 
     @trusted_user(check_user)
     async def update_tokens(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -135,3 +158,123 @@ class TGTraffic:
     async def show_directions(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         directions = self.traffic_bot.get_current_directions_names()
         await update.message.reply_text(directions)
+
+    @trusted_user(check_user)
+    async def main_menu_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+        text = update.message.text
+        print("here")
+        if text == "Статус 📈":
+            print("here2")
+            await update.message.reply_text(self.traffic_bot.get_operating_status(), reply_markup=main_menu_markup)
+            return MAIN_MENU
+
+        elif text == "Справка ℹ️":
+            await update.message.reply_text(self.get_help(), reply_markup=main_menu_markup)
+            return MAIN_MENU
+
+        elif text == "Посмотреть логи 🔍":
+            with open("logs/bot_info.log", 'r', encoding='utf-8') as f:
+                last_lines = deque(f, maxlen=10)
+                await update.message.reply_text(f"Последние 10 записей из логов:\n{''.join(last_lines)}")
+            return MAIN_MENU
+
+        elif text == "Запустить скрипт":
+            self.traffic_bot.refresh_directions(self.jm.get_active_directions_params())
+            response_text = self.traffic_bot.start()
+            await update.message.reply_text(response_text)
+            return MAIN_MENU
+
+        elif text == "Остановить скрипт":
+            self.traffic_bot.set_exit_message(f"Остановлен пользователем {update.message.from_user.username}")
+            self.jm.save()
+            response_text = self.traffic_bot.stop()
+            await update.message.reply_text(response_text)
+            return MAIN_MENU
+
+        elif text == "Направления 🚘":
+            await update.message.reply_text("Выберите город:", reply_markup=directions_menu_markup)
+            return DIRECTIONS_MENU
+
+        else:
+            await update.message.reply_text(
+                "Неизвестная команда. Пожалуйста, выберите действие из меню.",
+                reply_markup=main_menu_markup
+            )
+            return MAIN_MENU
+
+    @trusted_user(check_user)
+    async def directions_menu_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+        text = update.message.text
+        if text in ("Из Москвы 🏙", "Из Питера 🌉", "Из Казани 🕌", "Из Ростова-на-Дону 🌊", "Из Краснодара 🌳"):
+            direction_group = self.jm.get_group_by_name(text)
+            await self.delete_last_inline()
+            if direction_group:
+                keyboard = self.jm.make_directions_keyboard(direction_group)
+                self.last_inline_message = await update.message.reply_text(f"Направления {text}", reply_markup=keyboard)
+                return DIRECTIONS_MENU
+
+        elif text == "Посмотреть активные 🧭":
+            await self.delete_last_inline()
+            active_keyboard = self.jm.make_active_directions_keyboard()
+            self.last_inline_message = await update.message.reply_text("Активные направления:",
+                                                                       reply_markup=active_keyboard)
+            return DIRECTIONS_MENU
+        elif text == "Назад":
+            await self.delete_last_inline()
+            await update.message.reply_text("Возвращаемся:", reply_markup=main_menu_markup)
+            return MAIN_MENU
+        else:
+            await self.delete_last_inline()
+            await update.message.reply_text(
+                "Неизвестная команда. Пожалуйста, выберите действие из меню.",
+                reply_markup=main_menu_markup
+            )
+            return DIRECTIONS_MENU
+
+    @trusted_user(check_user)
+    async def city_menu_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+        pass
+
+    @trusted_user(check_user)
+    async def cancel(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+        await update.message.reply_text(
+            "Мафия уходит на покой...\nНо только на время",
+            reply_markup=ReplyKeyboardRemove()
+        )
+        return ConversationHandler.END
+
+    async def direction_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        query = update.callback_query
+        await query.answer()
+        if query.data == 'back':
+            await query.message.delete()
+            return
+
+        direction_info = query.data.split('_')
+        if len(direction_info) == 3:
+            if direction_info[0] == "sd":
+                self.jm.invert_direction_active(direction_info[1], direction_info[2])
+                self.jm.save()
+                self.traffic_bot.refresh_directions(self.jm.get_active_directions_params())
+                updated_keyboard = self.jm.make_directions_keyboard(direction_info[1])
+                await query.edit_message_reply_markup(reply_markup=updated_keyboard)
+            elif direction_info[0] == "ac":
+                self.jm.invert_direction_active(direction_info[1], direction_info[2])
+                self.jm.save()
+                self.traffic_bot.refresh_directions(self.jm.get_active_directions_params())
+                updated_keyboard = self.jm.make_active_directions_keyboard()
+                await query.edit_message_reply_markup(reply_markup=updated_keyboard)
+
+    async def delete_last_inline(self):
+        if self.last_inline_message is not None:
+            try:
+                await self.last_inline_message.delete()
+            except BadRequest:
+                pass
+
+
+
+
+
+
+
