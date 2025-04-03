@@ -15,11 +15,6 @@ from utils import get_shipping_info_from_json
 from constants import shipping_info_query
 
 
-# TODO: настройка направлений
-# TODO: удаление направлений
-# TODO: добавление направлений
-
-
 class TrafficBot:
     def __init__(self, api_key: str, data_filename: str, directions_file_path: str):
         self.session = Session()
@@ -34,11 +29,12 @@ class TrafficBot:
         self.last_statuses = []
         self.current_statuses = []
         self.last_status_update = datetime.now() + timedelta(hours=3)
-        self.directions = get_directions_from_json(directions_file_path)
+        self.directions = []
         self.thread_lock = threading.Lock()
         self.exit_message = ""
         self.exit_time = datetime.now() + timedelta(hours=3)
         self.last_booked = []
+        self.activated_directions = []
         super().__init__()
 
     def refresh_api_key(self, api_key: str) -> Tuple[bool, bool]:
@@ -56,11 +52,10 @@ class TrafficBot:
 
     def start(self) -> str:
         self.exit_message = ""
-        self.directions = get_directions_from_json(self.directions_file_path)
         self.shipping_ids = get_ids(self.data_filename)
         if not self.running:
             self.running = True
-            self.thread = threading.Thread(target=self.polling, daemon=True)
+            self.thread = threading.Thread(target=self.polling_without_booking, daemon=True)
             self.thread.start()
             return "Скрипт запущен!"
         return "Скрипт уже работает"
@@ -85,29 +80,32 @@ class TrafficBot:
         j = 0
         while self.running:
             try:
-                with self.thread_lock:
-                    direction_responses = self.shipping_getter.get_shipping_responses(self.directions)
-                filtered_direction_responses = self.shipping_getter.filter_shipping_responses_by_status_code(
-                    direction_responses, self.logger)
-                shipping_ids = self.shipping_getter.process_shipping_response(filtered_direction_responses)
-                j += 1
-                i = len(direction_responses) % 3
-                for shipping_id in shipping_ids:
-                    self.logger.info(f"Processing: {shipping_id}")
-                    if shipping_id not in self.shipping_ids:
-                        i += 1
-                        with self.thread_lock:
-                            shipping_booking_response = self.shipping_booker.book_shipping(shipping_id)
-                        shipping_booked = self.shipping_booker.process_booking_response(shipping_booking_response,
-                                                                                        self.logger)
-                        if shipping_booked:
-                            self.shipping_ids.append(shipping_id)
-                            self.last_booked.append(shipping_id)
-                        if i % 3 == 0:
-                            time.sleep(1)
-                            i = 0
-                    else:
-                        self.logger.info(f"This id was processed before ({shipping_id})")
+                time.sleep(1)
+                if bool(self.directions):
+                    with self.thread_lock:
+                        direction_responses = self.shipping_getter.get_shipping_responses(self.directions)
+                    filtered_direction_responses = self.shipping_getter.filter_shipping_responses_by_status_code(
+                        direction_responses, self.logger)
+                    shipping_ids = self.shipping_getter.process_shipping_response(filtered_direction_responses)
+                    j += 1
+                    i = len(direction_responses) % 3
+                    for shipping_id in shipping_ids:
+                        self.logger.info(f"Processing: {shipping_id}")
+                        if shipping_id not in self.shipping_ids:
+                            print(shipping_id)
+                            i += 1
+                            with self.thread_lock:
+                                shipping_booking_response = self.shipping_booker.book_shipping(shipping_id)
+                            shipping_booked = self.shipping_booker.process_booking_response(shipping_booking_response,
+                                                                                            self.logger)
+                            if shipping_booked:
+                                self.shipping_ids.append(shipping_id)
+                                self.last_booked.append(shipping_id)
+                            if i % 3 == 0:
+                                time.sleep(1)
+                                i = 0
+                        else:
+                            self.logger.info(f"This id was processed before ({shipping_id})")
             except ServerTroubleException:
                 self.exit_message = "Проблемы на внешнем сервере"
                 self.stop()
@@ -120,7 +118,7 @@ class TrafficBot:
                 self.logger.error(e, exc_info=True)
                 self.logger.error(e.args)
                 time.sleep(2)
-            if j % 30 == 0:
+            if j % 30 == 0 and j != 0:
                 self.last_statuses = list(map(lambda x: x.status_code, direction_responses))
                 self.last_status_update = datetime.now() + timedelta(hours=3)
                 self.logger.info(f"Последние статусы ответов: {self.last_statuses}")
@@ -132,6 +130,7 @@ class TrafficBot:
                 except Exception as e:
                     self.logger.error(f"Something went wrong during id saving: {e}")
 
+
     def check_instances(self) -> bool:
         number_of_processes = check_process()[1]
         if number_of_processes <= 1:
@@ -141,9 +140,9 @@ class TrafficBot:
             self.logger.info(f"Количество процессов: {number_of_processes}")
             return False
 
-    def refresh_directions(self):
-        with open(self.directions_file_path, 'r', encoding='utf-8') as file:
-            self.directions = json.load(file)
+    def refresh_directions(self, active_directions):
+        self.directions = active_directions
+
 
     def is_running(self):
         return self.running
@@ -200,3 +199,15 @@ class TrafficBot:
 
     def clear_last_booked(self):
         self.last_booked = []
+
+    def get_operating_status(self):
+        running = self.is_running()
+        if running:
+            status = "Бот на охоте за грузами 😈"
+            f"\nПоследние статусы ответов: {self.traffic_bot.get_last_statuses()}"
+            f"\nВремя обновления: "
+            f"{self.traffic_bot.get_last_status_update().strftime('%d.%m.%Y %H:%M')}"
+        else:
+            status = (f"Бот в данный момент не работает 😴\nСтатус:"
+                      f" {self.get_exit_message()}\nВремя остановки: {self.get_exit_time().strftime('%d.%m.%Y %H:%M')}")
+        return status
