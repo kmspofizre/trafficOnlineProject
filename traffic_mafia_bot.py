@@ -24,7 +24,7 @@ class TGTraffic:
     def __init__(self, data_path, directions_path):
         self.jm = JsonManager(directions_path)
         self.traffic_bot = TrafficBot(API_key, data_path, directions_path)
-        self.application = Application.builder().token(tg_token).build()
+        self.application = Application.builder().read_timeout(10).write_timeout(10).token(tg_token).build()
         self.application.add_handler(CommandHandler("activate_script", self.activate_script))
         self.application.add_handler(CommandHandler("stop_script", self.stop_script))
         self.application.add_handler(CommandHandler("status", self.status))
