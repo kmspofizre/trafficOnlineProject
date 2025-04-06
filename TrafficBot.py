@@ -55,7 +55,7 @@ class TrafficBot:
         self.shipping_ids = get_ids(self.data_filename)
         if not self.running:
             self.running = True
-            self.thread = threading.Thread(target=self.polling_without_booking, daemon=True)
+            self.thread = threading.Thread(target=self.polling, daemon=True)
             self.thread.start()
             return "Скрипт запущен!"
         return "Скрипт уже работает"
